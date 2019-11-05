@@ -1,8 +1,5 @@
 *.npy
-*.txt
 *.pyc
-*.jpg
-*.png
 .vscode/
 Analysis/
 Stop\ Code\ -\ outputs/
