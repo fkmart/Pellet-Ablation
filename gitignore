@@ -1,13 +1,4 @@
 *.npy
 *.pyc
 .vscode/
-Analysis/
-Stop\ Code\ -\ outputs/
-Sub-sheath/
-interp_dens
-PLOT_model_params
-TEST_DENS
-.__pycahce__/
-Outputs_phi/
-Outputs/
-redundant_code/
+.__pycache__/

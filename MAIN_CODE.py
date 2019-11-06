@@ -1,31 +1,21 @@
-
-
-"""This code will solve the Berger and Seltzer stopping power ode for singular time 
-but with an artbitrary pellet potential which linearly increases from the pellet to 
-the cloud edge.
-
-A potential field can be applied to account for additional electrostatic slowing of particles
-and changes in this potential to plot how the fraction of the initial distribution changes 
-with this pellet potential """ 
+"""This code will use an RK4 solver to solve the CSDA equation from Sletzer and Berger to determine the distribution
+of electrons across the cloud due to inelastic collisions with neutral diatomic hydrogen. The distribution of charge
+is then used to determine the self-field according to Poisson's equation by using an SOR method. The incident 
+energy on the pellet surface then determines the """
 import numpy as np
-from gen_var import rp, rc, t_start,lt, lr, dr, lp, pel_pot, cloud_pot, style , many_start, t_end, inc, p_inc
-import os
+from gen_var import rp, rc, t_start,lt, lr, dr, lp, pel_pot, cloud_pot, style , many_start, t_end, inc, p_inc, rp_crit 
+import os 
 import stopblock #function to bethe stop electrons
 import MB_calc # function to determine EEDF
-import pot_sum # function to add potentials from electrons and pellet at matching points
 from electron import e_dist, ener_res, e_bar, KE_top, KE_bot, RME, M_fac #importing essential variables and functions
 import electron as part
 import bethe_analysis_functions as baf # funcitons to analyse the data
 import sys #for exiting the code and printing an "error message"
-import discret_mat
-import iterative_sol as SOR 
-import elec_transport_2 as e_trans #THIS NEEDS TO BE PUT IN YET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#look closer at this transport function
-import common_interpolator as com_int 
-#import cloud_mover 
-import matplotlib.pyplot as plt
-
-
+import discret_mat # makes discretisation matrix for SOR
+import iterative_sol as SOR #SOR solver
+import elec_transport_2 as e_trans #transport module to move electrons based on relative change in H2 densities
+import common_interpolator as com_int #interpolater to move from one grid to another
+import matplotlib.pyplot as plt # plotting module - not to be used in these simulations but present for testing
 
 particle = 'electron' # clarifying particle type
 
@@ -46,7 +36,9 @@ if (i > lt-1):
     sys.exit()
 else:
     pass
-#Need to define a Rombergian grid 
+
+"""DEfine the Rombergian grid with sufficient resolution
+-needed for better integration along the cloud radius""" 
 x_res = 0.01 
 n = 1
 n_r = 2.0**n
@@ -55,36 +47,35 @@ while (rc[-1]/(2.0**(n)) > x_res) :
 
 n_r = 2**n + 1
 
-#r = np.arange(0,rc[-1], dr) 
-r = np.linspace(0, rc[-1], n_r)
-neut_dens = np.zeros(n_r)
+r = np.linspace(0, rc[-1], n_r) # romberg grid defined
+neut_dens = np.zeros(n_r) # neutral density array of equal length, only some values will be non-zero
 
 lr = len(r)
 
 "Must now establish how the simulation will proceed with choice of style"
 if style == 'once':
     pot = np.zeros(lr)
-    savedir_raw = '/home/kyle/Documents/Python_Code/stop_code/one_size_fits_all/one_iteration/raw_outputs/'
-    savedir_an = '/home/kyle/Documents/Python_Code/stop_code/one_size_fits_all/one_iteration/analysed_outputs/'
+    savedir_raw = os.getcwd() + "/one_iteration/raw_outputs/"
+    savedir_an = os.getcwd() + "/one_iteration/analysed_outputs/"
 elif style =='once_charge':
     pot = pel_pot
-    savedir_raw = '/home/kyle/Documents/Python_Code/stop_code/one_size_fits_all/one_iteration_phic/raw_outputs/'
-    savedir_an = '/home/kyle/Documents/Python_Code/stop_code/one_size_fits_all/one_iteration_phic/analysed_outputs/'
+    savedir_raw = os.getcwd() + "/one_iteration_phic/raw_outputs/"
+    savedir_an = os.getcwd() + "one_iteration_phic/analysed_outputs/"
 elif style =='many':
     pot = np.zeros(lr)
-    savedir_raw = '/home/kyle/Documents/Python_Code/stop_code/one_size_fits_all/many_iteration/raw_outputs/'
-    savedir_an = '/home/kyle/Documents/Python_Code/stop_code/one_size_fits_all/many_iteration/analysed_ouputs/'
+    savedir_raw = os.getcwd() + "/many_iteration/raw_outputs/"
+    savedir_an = os.getcwd() + "/many_iteration/analysed_ouputs/"
 else:
     print ('Must select an appropriate simulation style - see gen_var for details')
     sys.exit()
 
 """Delete all files in the sub directory"""
 
-filelist_raw = [ f for f in os.listdir(savedir_raw) if f.endswith(".npy") ]
+filelist_raw = [ f for f in os.listdir(savedir_raw ) if f.endswith(".npy") ] # deletes the .npy files of raw data
 for f in filelist_raw:
     os.remove(os.path.join(savedir_raw, f))
 
-filelist_an = [ f for f in os.listdir(savedir_an) if f.endswith(".txt") ]
+filelist_an = [ f for f in os.listdir(savedir_an) if f.endswith(".txt") ] # deletes the .txt files of analysed data
 for f in filelist_an:
     os.remove(os.path.join(savedir_an, f))
 
@@ -92,23 +83,18 @@ for f in filelist_an:
 flux_arr = []
 ener_flux_arr = []
 lifetime_arr = []
-acc_elec_dens = np.zeros(len(r)) # initial electron density - zero everywhere
+acc_elec_dens = np.zeros(n_r) # initial electron density - zero everywhere
 pot /= RME*M_fac # normalise electric potential for stopblock calc
-
-rp_crit = 0.001 # can get put in gen_var later
-
-i = many_start
 
 if style == 'once':
     p = 0
     fig, ax = plt.subplots()
     for i in range(t_start, t_end, inc):
         print(i)
-        low = next(p[0] for p in enumerate(r) if p[1] > rp[i])
-        up = next(p[0] for p in enumerate(r) if p[1] > rc[i])
-        r_internal = r[low:up]
+        low = next(p[0] for p in enumerate(r) if p[1] > rp[i]) # finds first index with r > r_p
+        up = next(p[0] for p in enumerate(r) if p[1] > rc[i]) # finds first index with r > r_c
+        r_internal = r[low:up] 
         neut_dens[low:up] = 0.01*((1.0 + rp[i]**2)/(1.0 + r[low:up]**2))
-        #r_internal = np.arange(0, rc[i] - rp[i], dr)
         pot = np.zeros(n_r)
         stopblock.stopblock_phi(e_mid, r,i, neut_dens, pot,savedir_raw)
 
@@ -117,23 +103,25 @@ if style == 'once':
         faux_density,real_density = baf.stop_analysis_particle_density.particle_density(stop_point,i, len(e_mid), e_bins, particle,p,r_internal[0],r)
         ret_flux_frac, ener_flux, lifetime = baf.stop_analysis_retarded_flux.retarded_flux(i,savedir_an, term_en)
 
+        """These following arrays aren't the msot relevant for this particular 
+        type of simulation. Not really needed right now but can tidy up later"""
+
         np.append(flux_arr, (ret_flux_frac, pel_pot[p])) #Append potential dependant arrays with new quantities
         flux_arr.append((ret_flux_frac, pel_pot[p]))
         ener_flux_arr.append((ener_flux, pel_pot[p]))
         lifetime_arr.append((lifetime, pel_pot[p]))
-        #import cloud_update
 
-        "Saving data for a singular Bethe calculation"
+        "Saving analysed data for a singular Bethe calculation"
 
-        np.savetxt(os.path.join(savedir_an, 'terminal_energy_pot_test_t'+str(i)+'pot'+str(pot[0]) +'.txt'), term_en)   
-        np.savetxt(os.path.join(savedir_an, 'stop_point_pot_test_t' + str(i) +'pot'+str(pot[0])+'.txt'), stop_point, fmt = ('%f'))
-        np.savetxt(os.path.join(savedir_an, 'density_pot_test_t' +str(i) +'pot'+str(pot[0])+'.txt'), faux_density)
-        np.savetxt(os.path.join(savedir_an, 'real_density_pot_test_t'+str(i) +'pot'+str(pot[0])+'.txt'), real_density)
+        np.savetxt(os.path.join(savedir_an, 'terminal_energy_pot_test_t'+str(i)+'.txt'), term_en)   
+        np.savetxt(os.path.join(savedir_an, 'stop_point_pot_test_t' + str(i)+'.txt'), stop_point, fmt = ('%f'))
+        np.savetxt(os.path.join(savedir_an, 'density_pot_test_t' +str(i) +'.txt'), faux_density)
+        np.savetxt(os.path.join(savedir_an, 'real_density_pot_test_t'+str(i) +'.txt'), real_density)
         ax.plot(real_density[:,1],real_density[:,0], label = r'$\tilde{t} = $' + str(i))
     plt.legend()
     plt.show()
+
 elif style =='once_charge': 
-    #r_internal = np.arange(0, rc[i] - rp[i], dr)
     low = next(p[0] for p in enumerate(r) if p[1] > rp[i])
     up = next(p[0] for p in enumerate(r) if p[1] > rc[i])
     r_internal = r[low:up]
@@ -151,8 +139,6 @@ elif style =='once_charge':
         flux_arr.append((ret_flux_frac, pel_pot[p]))
         ener_flux_arr.append((ener_flux, pel_pot[p]))
         lifetime_arr.append((lifetime, pel_pot[p]))
-        
-        import cloud_update
 
         "Saving data for a singular Bethe calculation"
 
@@ -166,7 +152,6 @@ elif style =='many':
         
         low = next(p[0] for p in enumerate(r) if p[1] > rp[i])
         up = next(p[0] for p in enumerate(r) if p[1] > rc[i])
-        #r_internal = np.arange(0, rc[i] - rp[i] , dr)
         r_internal = r[low:up]
         stopblock.stopblock_phi(e_mid, r_internal,i, particle, pot)
 
@@ -184,18 +169,21 @@ elif style =='many':
 
         elec_interp, ind_low, ind_up = com_int.common_interp(r, real_density[:,1], real_density[:,0]) # interpolating charge onto all gridpoints
         acc_elec_dens[ind_low:ind_up] = elec_interp[:] + acc_elec_dens[ind_low:ind_up]
-        #now need to move the electrons
+        
+        "Now move the electrons with the neutrals"
         acc_elec_dens, low_2, up_2 = e_trans.elec_mover(i,r,acc_elec_dens,r[ind_low:ind_up],shift)
-        r_domain = r[low_2:up_2] #  shifted spatial range, rp2 to tc2
+        r_domain = r[low_2:up_2] #  shifted spatial range, rp2 to rc2
         A = discret_mat.discret(r_domain) #r here needs to be from just in front of the pellet to the cloud at the new time.
+        """SOR solver follows - initial guess is zeroes but will be updated to be the old potential with zeroes
+        in any extra indices."""
         phic = SOR.SOR(A, pot[low_2:up_2], acc_elec_dens[low_2:up_2], r_domain)
 
         "Saving data for a singular Bethe calculation"
 
-        np.savetxt(os.path.join(savedir_an, 'terminal_energy_pot_test_t'+str(i)+'pot'+str(pot[0]) +'.txt'), term_en)   
-        np.savetxt(os.path.join(savedir_an, 'stop_point_pot_test_t' + str(i) +'pot'+str(pot[0])+'.txt'), stop_point, fmt = ('%f'))
-        np.savetxt(os.path.join(savedir_an, 'density_pot_test_t' +str(i) +'pot'+str(pot[0])+'.txt'), faux_density)
-        np.savetxt(os.path.join(savedir_an, 'real_density_pot_test_t'+str(i) +'pot'+str(pot[0])+'.txt'), real_density)
+        np.savetxt(os.path.join(savedir_an, 'terminal_energy_pot_test_t'+str(i)+'.txt'), term_en)   
+        np.savetxt(os.path.join(savedir_an, 'stop_point_pot_test_t' + str(i) +'.txt'), stop_point, fmt = ('%f'))
+        np.savetxt(os.path.join(savedir_an, 'density_pot_test_t' +str(i) +'.txt'), faux_density)
+        np.savetxt(os.path.join(savedir_an, 'real_density_pot_test_t'+str(i) +'.txt'), real_density)
 
 else:
     print("I don't know how you got this far but your style is wrong")

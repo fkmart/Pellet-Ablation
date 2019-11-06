@@ -1,10 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Jan  4 15:11:49 2019
 
-@author: kyle
-"""
 import numpy as np
 import os
 from gen_var import *
@@ -12,10 +6,7 @@ from electron import RME as RME_e
 #from numba import jit, float64
 #import stop_func
 
-#stopblock is the overaching function here, might be a better way to structure this yet again but this works
-#much better than the first version.
 
-#@jit('float64[:], float64[:], int, string, float64[:]')
 def stopblock(E,r, i, particle):
     from electron import RME, M_fac
     from gen_var import zovera, delta, I, le  
@@ -62,6 +53,12 @@ def stopblock(E,r, i, particle):
               np.save(os.path.join('raw_multi_static_outputs','EvsR_'+particle +'_t%d_E0%d.npy' % (i,j)), ener_prof) # save files as npy for analysis
 
  
+"""This is the defining stopblock function - as in, block of stopping code
+The following function (appended with phi) includes a consideration of the potential field the particles are moving through also.
+Neutral density is defined across the relevant points on the general grid, the stoping functino for use with RK4 is included too
+THe RK4 solver is defined here explicitly because the sheer number of possibilities for failure with log functions etc made this easier
+"""
+
 def stopblock_phi(E,r, i, den,phi, savedir):
         from electron import RME, M_fac
         from gen_var import zovera, delta, I, le  
