@@ -3,7 +3,7 @@ of electrons across the cloud due to inelastic collisions with neutral diatomic 
 is then used to determine the self-field according to Poisson's equation by using an SOR method. The incident 
 energy on the pellet surface then determines the """
 import numpy as np
-from gen_var import rp, rc, t_start,lt, lr, dr, lp, pel_pot, cloud_pot, style , many_start, t_end, inc, p_inc, rp_crit 
+from gen_var import rp, rc, t_start,lt, lr, dr, lp, pel_pot, cloud_pot, style , many_start, t_end, inc, p_inc, rp_crit, delta_t
 import os 
 import stopblock #function to bethe stop electrons
 import MB_calc # function to determine EEDF
@@ -125,14 +125,15 @@ elif style =='once_charge':
     low = next(p[0] for p in enumerate(r) if p[1] > rp[i])
     up = next(p[0] for p in enumerate(r) if p[1] > rc[i])
     r_internal = r[low:up]
+    neut_dens[low:up] = 0.01*((1.0 + rp[i]**2)/(1.0 + r[low:up]**2))
     for p in range(0, len(p), p_inc):
-        pot = np.linspace(0, pel_pot[p], len(r_internal))
+        #pot = np.linspace(0, pel_pot[p], len(r_internal))
 
-        stopblock.stopblock_phi(e_mid, r_internal,i, particle, pot, savedir_raw)
+        stopblock.stopblock_phi(e_mid, r,i, neut_dens , pot, savedir_raw)
 
-        term_en, ind = baf.stop_analysis_term_ener.term_energy(particle, r_internal, i, le, savedir_raw)
-        stop_point = baf.stop_analysis_stop_point.stop_point(term_en,ind, particle, r_internal,i,len(e_mid), savedir_raw)
-        faux_density,real_density = baf.stop_analysis_particle_density.particle_density(stop_point,i, len(e_mid), e_bins, particle,p,r_internal[0])
+        term_en, ind = baf.stop_analysis_term_ener.term_energy(particle, r, i, le, savedir_raw)
+        stop_point = baf.stop_analysis_stop_point.stop_point(term_en,ind, particle, r,i,len(e_mid), savedir_raw)
+        faux_density,real_density = baf.stop_analysis_particle_density.particle_density(stop_point,i, len(e_mid), e_bins, particle,p,r_internal[0],r)
         ret_flux_frac, ener_flux, lifetime = baf.stop_analysis_retarded_flux.retarded_flux(i,savedir_an, term_en)
 
         np.append(flux_arr, (ret_flux_frac, pel_pot[p])) #Append potential dependant arrays with new quantities
@@ -165,7 +166,9 @@ elif style =='many':
         ener_flux_arr.append((ener_flux, pel_pot[p]))
         lifetime_arr.append((lifetime, pel_pot[p]))
 
-        life = life + time_diff*delta_t
+        life = life + delta_t
+
+        shift = j - i # difference between the two "index times" after calculation of new rp
 
         elec_interp, ind_low, ind_up = com_int.common_interp(r, real_density[:,1], real_density[:,0]) # interpolating charge onto all gridpoints
         acc_elec_dens[ind_low:ind_up] = elec_interp[:] + acc_elec_dens[ind_low:ind_up]

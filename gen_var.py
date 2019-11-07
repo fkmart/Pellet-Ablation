@@ -34,12 +34,13 @@ t_start = 50
 t_end = 500
 inc = 100
 many_start = 3
+delta_t = 10**(-6) # in units of seconds - needed for number flux calculation
 
 """"#SPATIAL TERMS"""
 
-r0 = 10**(-3) #Initial pellet radius in mm
-r0cgs = 10**-1 #Initial pellet size in cm for normalisation in CSDA 
-rp_crit = 0.001 # normalised to initial pellet radius in mm 
+r0 = 10**(-3) #Initial pellet radius in m
+r0cgs = r0*100.0 #Initial pellet size in cm for normalisation in CSDA 
+rp_crit = r0/(10**3) # normalised to initial pellet radius in m
 rp = stop_calc_rp_rc.calc_rp(t) #CALCULATES PELLET RADIUS AT TIME POINTS IN NORMALISED UNITS 
 rc = stop_calc_rp_rc.calc_rc(t) #CALCULATES CLOUD RADIUS AT TIME POINTS IN NORMALISED UNITS 
 
@@ -59,7 +60,7 @@ eps = 0.01 #DEnsity contrast term - dimensionless
 dr = 1.0*10**-2 #Spatial resolution 
 le = 500 #Number of energy points
 
-"""#electrostatic terms"""
+"""ELECTROSTATIC TERMS"""
 
 e = 1.6022*10**(-19) # elementary charge in Coulombs
 epsilon0 = 8.8542*10**(-12) # permittivity of free space in F/m
@@ -73,7 +74,7 @@ cloud_pot = 0.0
 lp = len(pel_pot)
 p_inc = 1
 
-"""Background plasma terms""" 
+"""BACKGROUND PLASMA TERMS""" 
 phi_plas = 10**3 # in Volts
 m_e = 9.10938356*10**(-31) # in kg
 m_p = 1.6726219*10**(-27) # in kg
@@ -82,7 +83,7 @@ vrms_e = np.sqrt(2.0*e*phi_plas/m_e) #in ms^-1
 F0 = 0.25*dens_plas*vrms_e # flux of particles per square metre per second
 
 
-"""Pellet terms"""
+"""PELLET TERMS"""
 bond_energy = 0.00527 #in eV
 pel_dens_numb = solid_dens*10**(-3) # in kg/cm^3
 pel_dens_numb *= 10**6
