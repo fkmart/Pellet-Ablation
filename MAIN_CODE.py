@@ -3,7 +3,7 @@ of electrons across the cloud due to inelastic collisions with neutral diatomic 
 is then used to determine the self-field according to Poisson's equation by using an SOR method. The incident 
 energy on the pellet surface then determines the """
 import numpy as np
-from gen_var import rp, rc, t_start,lt, lr, dr, lp, pel_pot, cloud_pot, style , many_start, t_end, inc, p_inc, rp_crit, delta_t
+from gen_var import rp, rc, t_start,lt, lr, dr, lp, pel_pot, cloud_pot, style , many_start, t_end, inc, p_inc, rp_crit, delta_t, lp 
 import os 
 import stopblock #function to bethe stop electrons
 import MB_calc # function to determine EEDF
@@ -16,6 +16,7 @@ import iterative_sol as SOR #SOR solver
 import elec_transport_2 as e_trans #transport module to move electrons based on relative change in H2 densities
 import common_interpolator as com_int #interpolater to move from one grid to another
 import matplotlib.pyplot as plt # plotting module - not to be used in these simulations but present for testing
+import gauss_test_pot # gaussian test potential to see effect of bump in potential
 
 particle = 'electron' # clarifying particle type
 
@@ -58,9 +59,9 @@ if style == 'once':
     savedir_raw = os.getcwd() + "/one_iteration/raw_outputs/"
     savedir_an = os.getcwd() + "/one_iteration/analysed_outputs/"
 elif style =='once_charge':
-    pot = pel_pot
+    pot = np.zeros(n_r)
     savedir_raw = os.getcwd() + "/one_iteration_phic/raw_outputs/"
-    savedir_an = os.getcwd() + "one_iteration_phic/analysed_outputs/"
+    savedir_an = os.getcwd() + "/one_iteration_phic/analysed_outputs/"
 elif style =='many':
     pot = np.zeros(lr)
     savedir_raw = os.getcwd() + "/many_iteration/raw_outputs/"
@@ -125,16 +126,22 @@ elif style =='once_charge':
     low = next(p[0] for p in enumerate(r) if p[1] > rp[i])
     up = next(p[0] for p in enumerate(r) if p[1] > rc[i])
     r_internal = r[low:up]
+    mid = int(up/2)
     neut_dens[low:up] = 0.01*((1.0 + rp[i]**2)/(1.0 + r[low:up]**2))
-    for p in range(0, len(p), p_inc):
+    for p in range(0, lp, p_inc):
         #pot = np.linspace(0, pel_pot[p], len(r_internal))
-
+        pot[low:up] = gauss_test_pot.gauss_func(pel_pot[p],2.0,r_internal[mid],r_internal) # using gaussian test function
+        pot[:] /= RME*M_fac
         stopblock.stopblock_phi(e_mid, r,i, neut_dens , pot, savedir_raw)
 
         term_en, ind = baf.stop_analysis_term_ener.term_energy(particle, r, i, le, savedir_raw)
         stop_point = baf.stop_analysis_stop_point.stop_point(term_en,ind, particle, r,i,len(e_mid), savedir_raw)
         faux_density,real_density = baf.stop_analysis_particle_density.particle_density(stop_point,i, len(e_mid), e_bins, particle,p,r_internal[0],r)
         ret_flux_frac, ener_flux, lifetime = baf.stop_analysis_retarded_flux.retarded_flux(i,savedir_an, term_en)
+
+        #Printing essential information as diagnostic
+
+        print('For peak potential ' + str(pel_pot[p]) + ' the energy flux is ' + str(ener_flux))
 
         np.append(flux_arr, (ret_flux_frac, pel_pot[p])) #Append potential dependant arrays with new quantities
         flux_arr.append((ret_flux_frac, pel_pot[p]))
@@ -143,10 +150,10 @@ elif style =='once_charge':
 
         "Saving data for a singular Bethe calculation"
 
-        np.savetxt(os.path.join(savedir_an, 'terminal_energy_pot_test_t'+str(i)+'pot'+str(pot[0]) +'.txt'), term_en)   
-        np.savetxt(os.path.join(savedir_an, 'stop_point_pot_test_t' + str(i) +'pot'+str(pot[0])+'.txt'), stop_point, fmt = ('%f'))
-        np.savetxt(os.path.join(savedir_an, 'density_pot_test_t' +str(i) +'pot'+str(pot[0])+'.txt'), faux_density)
-        np.savetxt(os.path.join(savedir_an, 'real_density_pot_test_t'+str(i) +'pot'+str(pot[0])+'.txt'), real_density)
+        np.savetxt(os.path.join(savedir_an, 'terminal_energy_pot_test_t'+str(i)+'pot'+str(pel_pot[p]) +'.txt'), term_en)   
+        np.savetxt(os.path.join(savedir_an, 'stop_point_pot_test_t' + str(i) +'pot'+str(pel_pot[p])+'.txt'), stop_point, fmt = ('%f'))
+        np.savetxt(os.path.join(savedir_an, 'density_pot_test_t' +str(i) +'pot'+str(pel_pot[p])+'.txt'), faux_density)
+        np.savetxt(os.path.join(savedir_an, 'real_density_pot_test_t'+str(i) +'pot'+str(pel_pot[p])+'.txt'), real_density)
 
 elif style =='many':
     while rp[i] > rp_crit:
@@ -193,7 +200,7 @@ else:
     sys.exit()
 
 "Saving compilation of Bethe calculations with varying potentials"
-np.savetxt(os.path.join(savedir_an, 'retarded_flux_pot_test_t'+str(i)+'.txt'), flux_arr)    
-np.savetxt(os.path.join(savedir_an, 'retarded_ener_flux_pot_test'+str(i)+'.txt'), ener_flux_arr)
-np.savetxt(os.path.join(savedir_an, 'pellet_lifetime_retarding_potential_pot_test' + str(i)+'.txt'), lifetime_arr)
+np.savetxt(os.path.join(savedir_an, 'retarded_flux_pot_test_t'+str(i)+'pot' + str(pel_pot[p])+'.txt'), flux_arr)    
+np.savetxt(os.path.join(savedir_an, 'retarded_ener_flux_pot_test'+str(i)+ 'pot' + str(pel_pot[p]) + '.txt'), ener_flux_arr)
+np.savetxt(os.path.join(savedir_an, 'pellet_lifetime_retarding_potential_pot_test' + str(i)+ 'pot' + str(pel_pot[p]) +'.txt'), lifetime_arr)
 print('success')

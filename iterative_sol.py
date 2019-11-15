@@ -5,14 +5,13 @@ from numba import jit,float64
 
 @jit(nopython = True)
 def SOR(A,x,f,r):
-    rel_tol = 1e-6
+    rel_tol = 1e-8
     iteration = 0 
     omega = 1.00
-    h = 1.0
-    #omega = 2.0 / (1.0 + np.sin(np.pi * h))
     l = len(x)
     h = r[-1]/l
-    #h = r[1] - r[0]
+    h = r[1] - r[0]
+    omega = 2.0 / (1.0 + np.sin(np.pi * h))
 
     res = np.ones(len(x))
     while (np.any(res[1:-1] > np.abs(np.multiply(rel_tol,x[1:-1])))):
@@ -20,7 +19,7 @@ def SOR(A,x,f,r):
             s = np.dot(A[i,:], x[:])
             xnew = -f[i]*h**2  - (s - A[i,i]*x[i]) 
             xold = x[i]
-            x[i] = xnew*omega/A[i,i]
+            x[i] = (1 - omega)*x[i] + xnew*omega/A[i,i]
             res[i] = np.abs(xold - x[i])
         iteration += 1
         if (iteration%10000 == 0):

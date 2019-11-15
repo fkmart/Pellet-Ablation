@@ -10,7 +10,7 @@ Created on Sat Jan 26 10:44:08 2019
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate as spint
-from gen_var import dt, pel_pot, lp 
+#from gen_var import dt, pel_pot, lp 
 import os
 import scipy.integrate as spinteg
 
@@ -20,14 +20,15 @@ ax = fig.add_subplot(1,1,1)
 particle = 'electron'
 print('Particle type is ' + str(particle))
 
+
 i = 50
 
-for p in range(0,-2000, -200):
-    file = np.loadtxt(os.path.join('/analysed_outputs','real_density_pot_test_t'+str(i) +'pot'+str(pel_pot[p])+'.txt'))
-    #file = np.loadtxt(os.path.join('Analysed Outputs','GNU_'+particle+'_deposition_cloud_1keV_fs_t' + str(i) + '.txt'))
+for p in range(200,2000, 200):
+    file = np.loadtxt('real_density_pot_test_t'+str(i) +'pot-'+str(float(p))+'.txt')
+    #file = np.loadtxt(GNU_'+particle+'_deposition_cloud_1keV_fs_t' + str(i) + '.txt')
     
-    #file = np.loadtxt(os.path.join('Analysed Outputs','GNU_'+particle+'_terminal_ener_1keV_fs_t' + str(i) + '.txt'))
-    ax.plot(file[:,0], file[:,1], label = r'$\tilde{t} = '+str(int(100*(dt*i))/100.0)+'$')
+    #file = np.loadtxt('GNU_'+particle+'_terminal_ener_1keV_fs_t' + str(i) + '.txt')
+    ax.plot(file[:,0], file[:,1], label = r'$\phi = '+str(p)+'$')
 
 
 #file = np.loadtxt(os.path.join('Analysed Outputs', 'GNU_'+particle+'_min_imp_ener_1keV_fs_t.txt'))

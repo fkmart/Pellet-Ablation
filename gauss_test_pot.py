@@ -2,7 +2,8 @@ import numpy as np
 import scipy.interpolate as spint
 
 def gauss_func(A,k,x0,x):
-    pot = A*np.exp(k*(x - x0)**2)
+    pot = np.zeros(len(x))
+    pot[:] = A*np.exp(-k*(x[:] - x0)**2)
     return pot 
 
 def faux_pot(r,dens,A, r_full):
@@ -12,4 +13,6 @@ def faux_pot(r,dens,A, r_full):
     faux_pot = f(r_full[ind_low:ind_up])
     faux_pot *= A # scaling factor to get a reasonable amount of slowing 
     return faux_pot 
+
+#lets test the gaussian function 
 

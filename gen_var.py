@@ -11,7 +11,7 @@ Created on Fri Jan  4 15:32:45 2019
 #electrostatic history either by a forced potential or the previously deposited charge distribution
 
 #STYLE can be selected to be either 'once', 'once_charge', 'many'
-style = 'once'
+style = 'once_charge'
 
 import numpy as np
 
@@ -68,8 +68,8 @@ EF0 = -e/(4*np.pi*epsilon0*r0**2) # electric field at critical points for singul
 phi_plas = 1.0*10**3 #plasma potential in eV
 phi_p = -2.83*phi_plas #Floating sheath potential in H2 plasma but need to look at a text book for this
 
-p_diff = 1000.0 # following terms needed for setting up a "pseudo-sheath" or potential across the cloud
-pel_pot = -np.arange(0.0, 3000 + p_diff, p_diff)
+p_diff = 200.0 # following terms needed for setting up a "pseudo-sheath" or potential across the cloud
+pel_pot = -np.arange(0.0, 2000 + p_diff, p_diff)
 cloud_pot = 0.0
 lp = len(pel_pot)
 p_inc = 1
