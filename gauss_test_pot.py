@@ -3,7 +3,7 @@ import scipy.interpolate as spint
 
 def gauss_func(A,k,x0,x):
     pot = np.zeros(len(x))
-    pot[:] = A*np.exp(-k*(x[:] - x0)**2)
+    pot[:] = A*np.exp(-(1.0/(2.0*k**2))*(x[:] - x0)**2)
     return pot 
 
 def faux_pot(r,dens,A, r_full):

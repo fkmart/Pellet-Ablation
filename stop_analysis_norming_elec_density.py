@@ -21,17 +21,19 @@ def renorm_dens(r,faux_dens,e_bins, thing3,i,r_full):
     rci = rc[i]
     f = spit.interp1d(r, faux_dens,kind = 'cubic')
     
-    low = next(p[0] for p in enumerate(r_full) if p[1] > r[0])
-    up = next(p[0] for p in enumerate(r_full) if p[1] > r[-1])
+    low = next(p[0] for p in enumerate(r_full) if p[1] > r[-1])
+    up = next(p[0] for p in enumerate(r_full) if p[1] > r[0])
 
     faux_dens_part = f(r_full[low:up])
     faux_dens_full = np.zeros(len(r_full))
     faux_dens_full[low:up] = faux_dens_part[:]
 
     #integrated = spint.simps(faux_dens,r,dx = dr)
-    integrated = spint.romb(faux_dens_full, dx = r[1] - r[0])
+    integrated = spint.romb(faux_dens_full, dx = -r[1] + r[0])
     real_dens = faux_dens[:]/integrated
+    real_dens_full = faux_dens_full/integrated
+    check = spint.romb(real_dens_full, dx = -r[1] + r[0])
     real_dens *= frac_left
     real_dens = np.append(real_dens,r)
     real_dens = np.reshape(real_dens, (int(len(real_dens)/2),2),order = 'F')
-    return real_dens 
+    return real_dens

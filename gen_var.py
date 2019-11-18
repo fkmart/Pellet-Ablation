@@ -43,6 +43,15 @@ r0cgs = r0*100.0 #Initial pellet size in cm for normalisation in CSDA
 rp_crit = r0/(10**3) # normalised to initial pellet radius in m
 rp = stop_calc_rp_rc.calc_rp(t) #CALCULATES PELLET RADIUS AT TIME POINTS IN NORMALISED UNITS 
 rc = stop_calc_rp_rc.calc_rc(t) #CALCULATES CLOUD RADIUS AT TIME POINTS IN NORMALISED UNITS 
+x_res = 0.01 
+n = 1
+n_r = 2.0**n
+while (rc[-1]/(2.0**(n)) > x_res) : 
+    n += 1
+
+n_r = 2**n + 1
+
+r = np.linspace(0, rc[-1], n_r) # romberg grid defined
 
 """#BERGER AND SELTZER/NETHE STOPPING POWER TERMS"""
 zovera = 0.5 #Z/A
@@ -73,6 +82,7 @@ pel_pot = -np.arange(0.0, 2000 + p_diff, p_diff)
 cloud_pot = 0.0
 lp = len(pel_pot)
 p_inc = 1
+sig = [0.25,0.50,0.75,1.0,1.25,1.50]
 
 """BACKGROUND PLASMA TERMS""" 
 phi_plas = 10**3 # in Volts
