@@ -1,6 +1,6 @@
 import numpy as np 
 import stop_calc_rp_rc 
-from gen_var import t, eps, dt, dr
+from gen_var import t, eps, dt, dr,rc,rp
 import scipy.integrate as spint 
 import scipy.interpolate as spit
 
@@ -39,16 +39,13 @@ def elec_mover(t_ind, r, eden, rden, shift):
         flowspeed[i] = const/dens1[i] 
 
     #Now interpolate the densities to all internal gridpoints 
-    g = spit.interp1d(rden + rp1,eden, kind = 'cubic')
+    g = spit.interp1d(r,eden, kind = 'cubic')
     #g = spit.PchipInterpolator(rden + rp1, eden)
 
-    ind_interp_low = next(p[0] for p in enumerate(r) if p[1] >= rden[0] + rp1)
-    ind_interp_up = next(p[0] for p in enumerate(r) if p[1] >= rden[-1] + rp1) 
+    ind_interp_low = next(p[0] for p in enumerate(r) if p[1] >= rden[0])
+    ind_interp_up = next(p[0] for p in enumerate(r) if p[1] > rden[-1]) 
 
     eden_grid = g(r[ind_interp_low:ind_interp_up])
-
-    ind_low = ind_interp_low - indl1 
-    ind_up = indu1 -  ind_interp_up 
 
     eden_grid_rem = (1.0 - frac_change[ind_interp_low:ind_interp_up])*eden_grid[:]
 
@@ -61,7 +58,7 @@ def elec_mover(t_ind, r, eden, rden, shift):
     #f = spit.pchip_interpolate(r_trans, eden_grid_trans)
     
     ind_low_2 = next(p[0] for p in enumerate(r) if p[1] >= r_trans[0])
-    ind_up_2 = next(p[0] for p in enumerate(r) if p[1] >= r_trans[-1])
+    ind_up_2 = next(p[0] for p in enumerate(r) if p[1] > r_trans[-1])
 
     eden_trans_full = f(r[ind_low_2:ind_up_2])
 

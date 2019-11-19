@@ -42,6 +42,9 @@ neut_dens = np.zeros(n_r) # neutral density array of equal length, only some val
 
 lr = len(r)
 
+#Important to print the style being used here so you don't totally miss it
+print('The scenario tested here is: ' + str(style))
+
 "Must now establish how the simulation will proceed with choice of style"
 if style == 'once':
     pot = np.zeros(lr)
@@ -54,7 +57,7 @@ elif style =='once_charge':
 elif style =='many':
     pot = np.zeros(lr)
     savedir_raw = os.getcwd() + "/many_iteration/raw_outputs/"
-    savedir_an = os.getcwd() + "/many_iteration/analysed_ouputs/"
+    savedir_an = os.getcwd() + "/many_iteration/analysed_outputs/"
 else:
     print ('Must select an appropriate simulation style - see gen_var for details')
     sys.exit()
@@ -147,28 +150,30 @@ elif style =='once_charge':
             np.savetxt(os.path.join(savedir_an, 'real_density_pot_test_t'+str(i) +'pot'+str(pel_pot[p])+'sig' + str(sig[a])+'.txt'), real_density)
 
 elif style =='many':
+    i = many_start
     while rp[i] > rp_crit:
         
         low = next(p[0] for p in enumerate(r) if p[1] > rp[i])
         up = next(p[0] for p in enumerate(r) if p[1] > rc[i])
         r_internal = r[low:up]
-        stopblock.stopblock_phi(e_mid, r_internal,i, particle, pot)
+        stopblock.stopblock_phi(e_mid, r,i, neut_dens, pot, savedir_raw)
 
-        term_en, ind = baf.stop_analysis_term_ener.term_energy(particle, r_internal, i, le, savedir_raw)
-        stop_point = baf.stop_analysis_stop_point.stop_point(term_en,ind, particle, r_internal,i,len(e_mid), savedir_raw)
-        faux_density,real_density = baf.stop_analysis_particle_density.particle_density(stop_point,i, len(e_mid), e_bins, particle,p, r_internal[0])
+        term_en, ind = baf.stop_analysis_term_ener.term_energy(particle, r, i, le, savedir_raw)
+        stop_point = baf.stop_analysis_stop_point.stop_point(term_en,ind, particle, r,i,len(e_mid), savedir_raw)
+        faux_density,real_density = baf.stop_analysis_particle_density.particle_density(stop_point,i, len(e_mid), e_bins, particle,savedir_raw, r_internal[0],r)
         ret_flux_frac, ener_flux, lifetime = baf.stop_analysis_retarded_flux.retarded_flux(i,savedir_an, term_en)
 
-        np.append(flux_arr, (ret_flux_frac, pel_pot[p])) #Append potential dependant arrays with new quantities
+        """np.append(flux_arr, (ret_flux_frac, pel_pot[p])) #Append potential dependant arrays with new quantities
         flux_arr.append((ret_flux_frac, pel_pot[p]))
         ener_flux_arr.append((ener_flux, pel_pot[p]))
-        lifetime_arr.append((lifetime, pel_pot[p]))
+        lifetime_arr.append((lifetime, pel_pot[p]))"""
 
-        life = life + delta_t
+        #life = life + delta_t
 
-        shift = j - i # difference between the two "index times" after calculation of new rp
+        #shift = j - i # difference between the two "index times" after calculation of new rp
+        shift = 1
 
-        elec_interp, ind_low, ind_up = com_int.common_interp(r, real_density[:,1], real_density[:,0]) # interpolating charge onto all gridpoints
+        elec_interp, ind_low, ind_up = com_int.common_interp(r, real_density[:,0], real_density[:,1]) # interpolating charge onto all gridpoints
         acc_elec_dens[ind_low:ind_up] = elec_interp[:] + acc_elec_dens[ind_low:ind_up]
         
         "Now move the electrons with the neutrals"
@@ -177,7 +182,7 @@ elif style =='many':
         A = discret_mat.discret(r_domain) #r here needs to be from just in front of the pellet to the cloud at the new time.
         """SOR solver follows - initial guess is zeroes but will be updated to be the old potential with zeroes
         in any extra indices."""
-        phic = SOR.SOR(A, pot[low_2:up_2], acc_elec_dens[low_2:up_2], r_domain)
+        #phic = SOR.SOR(A, pot[low_2:up_2], acc_elec_dens[low_2:up_2], r_domain)
 
         "Saving data for a singular Bethe calculation"
 

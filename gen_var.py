@@ -11,7 +11,7 @@ Created on Fri Jan  4 15:32:45 2019
 #electrostatic history either by a forced potential or the previously deposited charge distribution
 
 #STYLE can be selected to be either 'once', 'once_charge', 'many'
-style = 'once_charge'
+style = 'many'
 
 import numpy as np
 
