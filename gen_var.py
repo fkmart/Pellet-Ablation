@@ -11,7 +11,7 @@ Created on Fri Jan  4 15:32:45 2019
 #electrostatic history either by a forced potential or the previously deposited charge distribution
 
 #STYLE can be selected to be either 'once', 'once_charge', 'many'
-style = 'many'
+style = 'once_charge'
 
 import numpy as np
 
@@ -35,6 +35,7 @@ t_end = 500
 inc = 100
 many_start = 3
 delta_t = 10**(-6) # in units of seconds - needed for number flux calculation
+life = 0.0
 
 """"#SPATIAL TERMS"""
 
@@ -73,7 +74,6 @@ le = 500 #Number of energy points
 
 e = 1.6022*10**(-19) # elementary charge in Coulombs
 epsilon0 = 8.8542*10**(-12) # permittivity of free space in F/m
-EF0 = -e/(4*np.pi*epsilon0*r0**2) # electric field at critical points for singular charge
 phi_plas = 1.0*10**3 #plasma potential in eV
 phi_p = -2.83*phi_plas #Floating sheath potential in H2 plasma but need to look at a text book for this
 
@@ -82,7 +82,7 @@ pel_pot = -np.arange(0.0, 2000 + p_diff, p_diff)
 cloud_pot = 0.0
 lp = len(pel_pot)
 p_inc = 1
-sig = [0.25,0.50,0.75,1.0,1.25,1.50]
+sig = [0.25,0.50,0.70,0.75,0.80,0.85,0.90,0.95,1.00,1.25,1.50]
 
 """BACKGROUND PLASMA TERMS""" 
 phi_plas = 10**3 # in Volts

@@ -26,6 +26,7 @@ dt = 0.002
 t = np.arange(tlow, tupper, dt) # SETTING TIME GRID
 lt = len(t)
 lr = lt
+t_start = 50
 t_static = 80
 
 """"#SPATIAL TERMS"""
@@ -62,7 +63,7 @@ phi_p = -2.83*phi_plas #Floating sheath potential in H2 plasma but need to look 
 pel_pot = -np.arange(0.0, 3020.0, 20.0)
 cloud_pot = 0.0
 lp = len(pel_pot)
-
+sig = [0.70,0.75,0.80,0.85,0.90,0.95,1.00]
 
 """Background plasma terms""" 
 phi_plas = 10**3 

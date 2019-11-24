@@ -1,7 +1,7 @@
 import numpy as np 
 import iterative_sol as SOR
 import discret_mat
-from gen_var import rc, rp  , r0, e , n_r, r , phi_p
+from gen_var import rc, rp  , r0, e , n_r, r, phi_p, epsilon0
 import matplotlib.pyplot as plt
 
 
@@ -21,12 +21,11 @@ r_dom = r[up - l : up]
 #r_dom[:] = r_dom[:] - r_dom[0]
 #r_dom[:] /= r_dom[-1]
 A = discret_mat.discret(r_dom) #r_domain is from just in front of the pellet to the cloud at the new time.
-norm = r0**2*(e*10**19)/(10**3 * 10**-11)
+norm = r0**2*(e*10**19)/(10**3 * epsilon0)
 pot_in = np.zeros(l)
 pot_in[-1] = 0.0
 pot_in[0] = 0.0
-phic = SOR.SOR(A, pot_in, norm*dens[:,0], r_dom)
-print('I think it is done')
+phic = SOR.SOR(A, pot_in, dens[:,0], r_dom)
 
 fig, ax  = plt.subplots() 
 ax.plot(r_dom, phic*10**3, color = 'royalblue', label = r'$\phi_c$')

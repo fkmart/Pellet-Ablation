@@ -168,7 +168,7 @@ elif style =='many':
         ener_flux_arr.append((ener_flux, pel_pot[p]))
         lifetime_arr.append((lifetime, pel_pot[p]))"""
 
-        #life = life + delta_t
+        life = life + delta_t
 
         #shift = j - i # difference between the two "index times" after calculation of new rp
         shift = 1
