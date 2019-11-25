@@ -37,4 +37,4 @@ def renorm_dens(r,faux_dens,e_bins, thing3,i,r_full):
     real_dens *= frac_left
     real_dens = np.append(real_dens,r)
     real_dens = np.reshape(real_dens, (int(len(real_dens)/2),2),order = 'F')
-    return real_dens
+    return real_dens, integrated 
