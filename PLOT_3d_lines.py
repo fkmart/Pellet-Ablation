@@ -6,8 +6,10 @@ import os
 import gauss_test_pot
 direc = os.getcwd() 
 
-load_dir = direc + '/one_iteration_phic/analysed_outputs/'
-path = '/home/kyle/Pictures/'
+#load_dir = direc + '/one_iteration_phic/analysed_outputs/'
+load_dir = os.path.join(direc, 'one_iteration_phic', 'analysed_outputs') + os.sep
+#path = '/home/kyle/Pictures/'
+path = os.path.join(direc, 'pictures') + os.sep
 i = t_start 
 
 low = next(p[0] for p in enumerate(r) if p[1] > rp[i])

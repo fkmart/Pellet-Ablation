@@ -29,7 +29,6 @@ def renorm_dens(r,faux_dens,e_bins, thing3,i,r_full):
     faux_dens_full = np.zeros(len(r_full))
     faux_dens_full[low:up] = faux_dens_part[:]
 
-    #integrated = spint.simps(faux_dens,r,dx = dr)
     integrated = spint.romb(faux_dens_full, dx = -r[1] + r[0])
     real_dens = faux_dens[:]/integrated
     real_dens_full = faux_dens_full/integrated

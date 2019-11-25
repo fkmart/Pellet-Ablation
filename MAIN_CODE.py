@@ -48,16 +48,22 @@ print('The scenario tested here is: ' + str(style))
 "Must now establish how the simulation will proceed with choice of style"
 if style == 'once':
     pot = np.zeros(lr)
-    savedir_raw = os.getcwd() + "/one_iteration/raw_outputs/"
-    savedir_an = os.getcwd() + "/one_iteration/analysed_outputs/"
+    savedir_raw = os.path.join(os.getcwd(), 'one_iteration', 'raw_outputs') + os.sep
+    savedir_an = os.path.join(os.getcwd(), 'one_iteration', 'analysed_outputs') + os.sep
+    #savedir_raw = os.getcwd() + "/one_iteration/raw_outputs/"
+    #savedir_an = os.getcwd() + "/one_iteration/analysed_outputs/"
 elif style =='once_charge':
     pot = np.zeros(n_r)
-    savedir_raw = os.getcwd() + "/one_iteration_phic/raw_outputs/"
-    savedir_an = os.getcwd() + "/one_iteration_phic/analysed_outputs/"
+    savedir_raw = os.path.join(os.getcwd(), 'one_iteration_phic', 'raw_outputs') + os.sep
+    savedir_an = os.path.join(os.getcwd(), 'one_iteration_phic', 'analysed_outputs') + os.sep
+    #savedir_raw = os.getcwd() + "/one_iteration_phic/raw_outputs/"
+    #savedir_an = os.getcwd() + "/one_iteration_phic/analysed_outputs/"
 elif style =='many':
     pot = np.zeros(lr)
-    savedir_raw = os.getcwd() + "/many_iteration/raw_outputs/"
-    savedir_an = os.getcwd() + "/many_iteration/analysed_outputs/"
+    savedir_raw = os.path.join(os.getcwd(), 'many_iteration', 'raw_outputs') + os.sep
+    savedir_an = os.path.join(os.getcwd(), 'many_iteration', 'analysed_outputs') + os.sep
+    #savedir_raw = os.getcwd() + "/many_iteration/raw_outputs/"
+    #savedir_an = os.getcwd() + "/many_iteration/analysed_outputs/"
 else:
     print ('Must select an appropriate simulation style - see gen_var for details')
     sys.exit()
@@ -110,9 +116,6 @@ if style == 'once':
         np.savetxt(os.path.join(savedir_an, 'stop_point_pot_test_t' + str(i)+'.txt'), stop_point, fmt = ('%f'))
         np.savetxt(os.path.join(savedir_an, 'density_pot_test_t' +str(i) +'.txt'), faux_density)
         np.savetxt(os.path.join(savedir_an, 'real_density_pot_test_t'+str(i) +'.txt'), real_density)
-        ax.plot(real_density[:,1],real_density[:,0], label = r'$\tilde{t} = $' + str(i))
-    plt.legend()
-    plt.show()
 
 elif style =='once_charge': 
     low = next(p[0] for p in enumerate(r) if p[1] > rp[i])

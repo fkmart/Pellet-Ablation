@@ -4,8 +4,10 @@ import os
 from gen_var import lp, pel_pot, p_inc, rp, rc 
 import gauss_test_pot
 
-load_dir = os.getcwd() + '/one_iteration_phic/analysed_outputs/'
-save_dir = '/home/kyle/Documents/thesis/Local_figures/'
+#load_dir = os.getcwd() + '/one_iteration_phic/analysed_outputs/'
+load_dir = os.path.join(os.getcwd(), 'one_iteration_phic', 'analysed_outputs') + os.sep
+#save_dir = '/home/kyle/Documents/thesis/Local_figures/'
+save_dir = os.path.join(os.getcwd(), 'pictures') + os.sep
 i = 50
 
 x_res = 0.01 

@@ -42,8 +42,5 @@ def particle_density(arrsave2, t, le, ebins,particle,mydir,r_pel,r):
     a1 = arrsave3[:,0]
     a2 = arrsave3[:,1]
     arrsave4 = stop_analysis_norming_elec_density.renorm_dens(a1[:], a2[:],ebins, arrsave2,t,r)
-    #print(len(arrsave3))
-   
-    #np.savetxt(os.path.join('Analysed Outputs','GNU_'+particle+'_density_cloud_1keV_fs_t' +str(t) +'.txt'), arrsave3)
     return arrsave3, arrsave4
     

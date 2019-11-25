@@ -2,8 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import iterative_sol
 import discret_mat
+import os
 
-savedir = '/home/kyle/Documents/thesis/Local_figures'
+#savedir = '/home/kyle/Documents/thesis/Local_figures'
+savedir = os.path.join(os.getcwd(), 'Local_figures') + os.sep
 title = 'polySORtest'
 """Integration constants"""
 
@@ -40,5 +42,5 @@ lns = l1 + l2
 labels = [l.get_label() for l in lns]
 
 plt.legend(lns, labels, ncol = 1, loc = 'upper left')
-plt.savefig(savedir+'/'+title+'.png', format = 'png', dpi = 1200)
+plt.savefig(savedir + title+'.png', format = 'png', dpi = 1200)
 plt.show()

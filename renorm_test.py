@@ -8,7 +8,8 @@ from electron import e_bar, e_dist, ener_res
 
 e1,e_bins, e2 = electron.dist_calc(e_dist, ener_res, e_bar)
 direc = os.getcwd() 
-load_dir = direc + '/one_iteration_phic/analysed_outputs/'
+load_dir = os.path.join(direc, 'one_iteration_phic', 'analysed_outputs') + os.sep
+#load_dir = direc + '/one_iteration_phic/analysed_outputs/'
 i = t_start 
 
 k = sig[-3]

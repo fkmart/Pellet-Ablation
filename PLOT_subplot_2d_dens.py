@@ -7,6 +7,7 @@ import os
 title = 'subplot_2d_cloud'
 
 path = os.path.join(os.path.expanduser('~'), 'Pictures')
+path = os.path.join(os.getcwd(), 'pcitures') + os.sep
 filelist = [ f for f in os.listdir(path) if f.startswith(title)]
 for f in filelist:
     os.remove(os.path.join(path, f))
@@ -99,5 +100,5 @@ for tchoice in range(1, number + 1):
     plt.show()
     plt.close()"""
 #first one
-#plt.savefig(path +'/' + title + '.png', format = 'png', dpi = 1600)
+#plt.savefig(path + title + '.png', format = 'png', dpi = 1600)
 plt.show()

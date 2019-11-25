@@ -4,8 +4,9 @@ from gen_var import dr,dt , t, eps
 import stop_calc_rp_rc
 import scipy.integrate as spint
 import scipy.interpolate as spit
+import os
 
-mydir = '/home/kyle/Documents/thesis/Local_figures/'
+mydir = os.path.join(os.getcwd(), 'Local_figures') + os.sep
 rp = stop_calc_rp_rc.calc_rp(t)
 rc = stop_calc_rp_rc.calc_rc(t)
 rcd = stop_calc_rp_rc.rdot(t,rc,rp)

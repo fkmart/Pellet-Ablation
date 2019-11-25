@@ -7,6 +7,7 @@ import discret_mat
 import interpolate_limits
 import scipy.integrate as spint
 import matplotlib.pyplot as plt
+import os
 
 rp = stop_calc_rp_rc.calc_rp(t)
 rp_static = rp[t_static]
@@ -19,6 +20,7 @@ real_e_dens = number/((np.pi*(rp_static*10**(-3))**2)*(rc_static-rp_static)*10**
 
 "can now make a calculation of the potential field in this domain"
 mydir = './static_outputs_phi' 
+mydir = os.path.join(os.getcwd(), 'static_outputs_phi') + os.sep
 p = 0
 d_file = np.loadtxt(mydir+'/real_density_t'+str(t_static) +'pot'+str(pel_pot[p])+'.txt')
 

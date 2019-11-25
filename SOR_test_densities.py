@@ -3,9 +3,11 @@ import iterative_sol as SOR
 import discret_mat
 from gen_var import rc, rp  , r0, e , n_r, r, phi_p, epsilon0
 import matplotlib.pyplot as plt
+import os
 
-
-savedir_an = '/home/kyle/Documents/Python_Code/stop_code/one_size_fits_all/one_iteration/analysed_outputs/'
+direc = os.getcwd()
+savedir_an = os.path.join(direc, 'one_iteration','analysed_outputs') + os.sep
+#savedir_an = '/home/kyle/Documents/Python_Code/stop_code/one_size_fits_all/one_iteration/analysed_outputs/'
 
 i = 50
 dens = -np.loadtxt(savedir_an + 'real_density_pot_test_t'+str(i) +'pot0.0'+'.txt')

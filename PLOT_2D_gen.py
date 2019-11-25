@@ -5,9 +5,11 @@ from gen_var import rp, rc, pel_pot, lp, sig, t_start
 import gauss_test_pot as gtp
 
 direc = os.getcwd()
-sub_dir = '/one_iteration_phic/analysed_outputs/'
+#sub_dir = '/one_iteration_phic/analysed_outputs/'
+sub_dir = os.path.join(direc, 'one_iteration_phic', 'analysed_outputs') + os.sep
 r_int = np.linspace(rp[t_start], rc[t_start], 602)
 savedir = '/home/kyle/Pictures/'
+savedir = os.path.join(direc,'pictures') + os.sep
 
 mid = 301
 ind1 = 15
@@ -20,7 +22,7 @@ y = str(1.00)
 for p in range(0, lp):
     pot = gtp.gauss_func(pel_pot[p],float(y), r_int[mid], r_int)
     x = format(pel_pot[p], '.1f') 
-    file = np.loadtxt(direc + sub_dir + 'stop_point_pot_test_t' + str(t_start) + 'pot' + x + 'sig' + y + '.txt')
+    file = np.loadtxt(sub_dir + 'stop_point_pot_test_t' + str(t_start) + 'pot' + x + 'sig' + y + '.txt')
     ax.plot(file[:ind1,1], file[:ind1,0], color = c[p], label = r'$\phi_{\mathrm{max}} = $' + str(pel_pot[p]) + 'V')
 plt.legend(ncol = 2, loc = 0)
 
