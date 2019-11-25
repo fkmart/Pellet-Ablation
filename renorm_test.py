@@ -11,8 +11,9 @@ direc = os.getcwd()
 load_dir = direc + '/one_iteration_phic/analysed_outputs/'
 i = t_start 
 
-k = sig[5]
+k = sig[-3]
 rp = rp[i]
+integ_arr = []
 fig, ax = plt.subplots()
 for p in range(0, lp, p_inc):
     file = np.loadtxt(load_dir + 'density_pot_test_t' +str(i) +'pot'+str(pel_pot[p])+'sig' + str(k) +'.txt')
@@ -22,7 +23,11 @@ for p in range(0, lp, p_inc):
     #ax.plot(real_dens[:,1], real_dens[:,0], label = r'$\phi = $' + str(pel_pot[p]))
     #ax.plot(r[:750],rdf[:750], label = r'$\phi = $' + str(pel_pot[p]))
     #ax.plot(file[:,0], file[:,1], label = r'$\phi = $' + str(pel_pot[p])) 
-    ax.plot(integ_arr[:,1], integ_arr[:,0])
+integ_arr = np.reshape(integ_arr, (int(len(integ_arr)*0.5),2), 'C')
+ax.plot(integ_arr[:,1], integ_arr[:,0])
+ax.set_xlabel('Peak Retarding Potential/V')
+ax.set_ylabel('Line Integrated Value')
+plt.savefig(load_dir + 'integrated_val_gauss_pot_sig' + format(k,'.2f') +'.txt', format = 'png', dpi = 1200)
 #ax.set_yscale('log')
 #plt.legend()
 plt.show()
