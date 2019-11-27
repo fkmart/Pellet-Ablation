@@ -8,7 +8,6 @@ direc = os.getcwd()
 #sub_dir = '/one_iteration_phic/analysed_outputs/'
 sub_dir = os.path.join(direc, 'one_iteration_phic', 'analysed_outputs') + os.sep
 r_int = np.linspace(rp[t_start], rc[t_start], 602)
-savedir = '/home/kyle/Pictures/'
 savedir = os.path.join(direc,'pictures') + os.sep
 
 mid = 301
@@ -17,13 +16,13 @@ ind = 150
 
 fig, ax  = plt.subplots()
 
-c = ['black', 'royalblue', 'chocolate', 'gold', 'darkorchid', 'limegreen','tomato', 'turquoise', 'midnightblue', 'firebrick', 'cadetblue']
+c = ['black', 'midnightblue', 'saddlebrown', 'y','forestgreen', 'darkred', 'dodgerblue', 'peru', 'gold', 'limegreen', 'tomato']
 y = str(1.00)
-for p in range(0, lp):
+for p in range(lp-1, -1,-1):
     pot = gtp.gauss_func(pel_pot[p],float(y), r_int[mid], r_int)
     x = format(pel_pot[p], '.1f') 
     file = np.loadtxt(sub_dir + 'stop_point_pot_test_t' + str(t_start) + 'pot' + x + 'sig' + y + '.txt')
-    ax.plot(file[:ind1,1], file[:ind1,0], color = c[p], label = r'$\phi_{\mathrm{max}} = $' + str(pel_pot[p]) + 'V')
+    ax.plot(file[:,1], file[:,0], color = c[p], label = r'$\phi_{\mathrm{max}} = $' + str(pel_pot[p]) + 'V')
 plt.legend(ncol = 2, loc = 0)
 
 ax.set_xlabel(r'$r/r_0$', fontsize = 12)
@@ -40,5 +39,6 @@ for p in range(0, lp):
     pot = gtp.gauss_func(pel_pot[p],1.00, r_int[mid], r_int)
     #ax2.plot(r_int[-ind:], pot[-ind:], color = c[p], linestyle = '--')
 
-plt.savefig(savedir + 'stop_point_pot_short_sig' + y + '.png', format = 'png', dpi = 1200)
+#plt.savefig(savedir + 'stop_point_pot_short_sig' + y + '.png', format = 'png', dpi = 1200)
+plt.grid('on')
 plt.show()

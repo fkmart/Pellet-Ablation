@@ -23,7 +23,7 @@ for p in range(0, lp, p_inc):
     #integ_arr = np.append(integ_arr, (integrated, pel_pot[p]))
     #ax.plot(real_dens[:,1], real_dens[:,0], label = r'$\phi = $' + str(pel_pot[p]))
     #ax.plot(r[:750],rdf[:750], label = r'$\phi = $' + str(pel_pot[p]))
-    #ax.plot(file[:,0], file[:,1], label = r'$\phi = $' + str(pel_pot[p])) 
+    ax.plot(file[:,0], file[:,1], label = r'$\phi = $' + str(pel_pot[p])) 
 #integ_arr = np.reshape(integ_arr, (int(len(integ_arr)*0.5),2), 'C')
 #ax.plot(integ_arr[:,1], integ_arr[:,0], label = r'$\sigma = $' + str(k))
 #ax.set_xlabel('Peak Retarding Potential/V')

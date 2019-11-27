@@ -5,12 +5,13 @@ import gauss_test_pot as gtp
 import bethe_analysis_functions as baf 
 import os 
 
-direc = os.getcwd() + '/pot_stop'
-subdir = '/data/'
+direc = os.path.join(os.getcwd(), 'pot_stop')
+savedir = os.path.join(direc, 'data') + os.sep
 
-filelist_raw = [ f for f in os.listdir(direc + subdir ) if f.endswith(".npy") ] # deletes the .npy files of raw data
+"""
+filelist_raw = [ f for f in os.listdir(savedir) if f.endswith(".npy") ] # deletes the .npy files of raw data
 for f in filelist_raw:
-    os.remove(os.path.join(direc + subdir, f))
+    os.remove(os.path.join(savedir, f))"""
 
 #No need for grid, but why not 
 t = t_start
@@ -31,16 +32,20 @@ for a in range(0, len(sig)):
             energy = []
             energy.append(en)
             y = 0
-            while (y < lr -1) and (en > I):
+            while (y < lr -1):
                 pot1 = pot[lr - 1 -y]
                 pot2 = pot[lr - 2 - y]
                 dphi = pot2 - pot1
                 y +=1
                 en += dphi
                 energy.append(en)
+                if (en < I):
+                    break
+                else:
+                    pass
             x_stop = r_int[-y] 
             traj = np.flip(r_int[-1-y:], axis = 0)
             ener_prof = energy 
             ener_prof = np.append(energy, traj)
             ener_prof = np.reshape(ener_prof, (int(len(ener_prof)*0.5),2),'F')
-            np.save(direc + subdir + 'prof%d_pot%d_sig%.2f'%(i,int(pel_pot[p]),sig[a]), ener_prof)
+            np.save(savedir + 'prof%d_pot%d_sig%.2f'%(i,int(pel_pot[p]),sig[a]), ener_prof)
