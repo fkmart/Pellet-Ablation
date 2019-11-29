@@ -2,8 +2,7 @@ import numpy as np
 import scipy.integrate as spint 
 from gen_var import dr,pel_pot, rp, rc
 import scipy.interpolate as spit
-import os
-
+import os 
 
 """This function does not normalise the density that has accummulated from all the charge
 only the most recent flux of electrons to enter the region. This will need to be adapted and
@@ -26,6 +25,7 @@ def renorm_dens(r,faux_dens,e_bins, thing3,i,r_full):
     up = next(p[0] for p in enumerate(r_full) if p[1] > r[0])
 
     faux_dens_part = f(r_full[low:up])
+    faux_dens_part = spit.pchip_interpolate(np.flip(r,axis = 0),np.flip(faux_dens,axis = 0), r_full[low:up])
     faux_dens_full = np.zeros(len(r_full))
     faux_dens_full[low:up] = faux_dens_part[:]
 
@@ -36,4 +36,4 @@ def renorm_dens(r,faux_dens,e_bins, thing3,i,r_full):
     real_dens *= frac_left
     real_dens = np.append(real_dens,r)
     real_dens = np.reshape(real_dens, (int(len(real_dens)/2),2),order = 'F')
-    return real_dens#, integrated 
+    return real_dens

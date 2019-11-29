@@ -33,9 +33,12 @@ for a in range(0, len(sig)):
             energy.append(en)
             y = 0
             while (y < lr -1):
-                pot1 = pot[lr - 1 -y]
-                pot2 = pot[lr - 2 - y]
-                dphi = pot2 - pot1
+                if y==0 : 
+                    dphi = pot[-1]
+                else:
+                    pot1 = pot[lr - 1 -y]
+                    pot2 = pot[lr - 2 - y]
+                    dphi = pot2 - pot1
                 y +=1
                 en += dphi
                 energy.append(en)

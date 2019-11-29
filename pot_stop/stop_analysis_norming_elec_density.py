@@ -9,10 +9,12 @@ import os
 only the most recent flux of electrons to enter the region. This will need to be adapted and
 modified to make life easier for myself at a later time."""
 def renorm_dens(r,faux_dens,e_bins, thing3,i,r_full):
-    ind = np.where(thing3[:,1]> rp[i])
+    """ind = np.where(thing3[:,1]> rp[i])
     x = ind[-1]
     x = x[-1]
     sum1 = np.sum(faux_dens[x+1:]) # this is the fraction of particles STRIKING the pellet
+    frac_left = 1.0 - sum1"""
+    sum1 = 1.0 - np.sum(faux_dens) # this is the fraction of particles striking the pellet
     frac_left = 1.0 - sum1
 
     #need to interpolate to all interior points
