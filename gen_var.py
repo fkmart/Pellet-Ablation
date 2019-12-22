@@ -11,7 +11,7 @@ Created on Fri Jan  4 15:32:45 2019
 #electrostatic history either by a forced potential or the previously deposited charge distribution
 
 #STYLE can be selected to be either 'once', 'once_charge', 'many'
-style = 'once_charge'
+style = 'many'
 
 import numpy as np
 
@@ -33,7 +33,7 @@ lr = lt
 t_start = 50
 t_end = 500
 inc = 100
-many_start = 3
+many_start = 50
 delta_t = 10**(-6) # in units of seconds - needed for number flux calculation
 life = 0.0
 

@@ -19,18 +19,21 @@ y = format(1.00, '.2f')
 for p in range(1, lp):
     pot = gtp.gauss_func(pel_pot[p],float(y), r_int[mid], r_int)
     x = str(int(pel_pot[p]))
-    file = np.loadtxt(load_dir + 'elec_dens_peak' + x + 'sig_' + y + '.txt')
-    ax.plot(file[:,1], file[:,0], color = c[p], label = str(pel_pot[p]) + 'V')
-plt.legend(ncol = 1, loc = 'center right')
+    file = np.loadtxt(load_dir + 'stop_point_peak' + x + 'sig_' + y + '.txt')
+    ax.scatter(file[:,1], file[:,0], marker = 'x', color = c[p], label = str(pel_pot[p]) + 'V')
+plt.legend(ncol = 1, loc = 'upper right')
 
 ax.set_yscale('log')
-ax2 = ax.twinx()
-for p in range(1, lp):
-    pot = gtp.gauss_func(pel_pot[p],1.00, r_int[mid], r_int)
-    ax2.plot(r_int, pot, color = c[p], linestyle = '--')
+
+ax.axvline(r_int[mid], linestyle = '--', color = 'black',label = 'Gaussian Centre')
+ax.axvline(r_int[0], linestyle = ':', color = 'k')
+ax.axvline(r_int[-1], linestyle = ':', color = 'k')
+plt.text(r_int[mid + int(0.05*mid) ],10**4, 'Gaussian Centre')
+plt.text(r_int[-20], 0.6*10**2, r'$r_c$', fontsize = 12)
+plt.text(r_int[10], 10**2, r'$r_p$', fontsize = 12)
 
 ax.set_xlabel(r'$r/r_0$', fontsize = 12)
-ax.set_ylabel(r'$n_e / 10^{19}\mathrm{m}^{-3}$')
-ax2.set_ylabel(r'$\phi$/V')
-#plt.savefig(path + 'PES_dens_gauss_pot_many_sig.png', format = 'png', dpi = 800)
+ax.set_ylabel('Initial Electron Energy/eV')
+
+plt.savefig(path + 'PES_stop_point_gauss_pot_many_sig.png', format = 'png', dpi = 800)
 plt.show()

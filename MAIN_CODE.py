@@ -17,9 +17,11 @@ import elec_transport_2 as e_trans #transport module to move electrons based on 
 import common_interpolator as com_int #interpolater to move from one grid to another
 import matplotlib.pyplot as plt # plotting module - not to be used in these simulations but present for testing
 import gauss_test_pot # gaussian test potential to see effect of bump in potential
+import gauss_centre_finder as gcf
+from sig_calc import sig_calc
 
 particle = 'electron' # clarifying particle type
-
+life = 0.0
 e_mid, e_bins, MB_norm = part.dist_calc(e_dist, ener_res, e_bar) #calculating mid-point energy of bins, bins, the normalised distribution
 le = len(e_mid)
 ener = np.arange(KE_bot, KE_top, ener_res) # establishing energy array
@@ -50,20 +52,17 @@ if style == 'once':
     pot = np.zeros(lr)
     savedir_raw = os.path.join(os.getcwd(), 'one_iteration', 'raw_outputs') + os.sep
     savedir_an = os.path.join(os.getcwd(), 'one_iteration', 'analysed_outputs') + os.sep
-    #savedir_raw = os.getcwd() + "/one_iteration/raw_outputs/"
-    #savedir_an = os.getcwd() + "/one_iteration/analysed_outputs/"
+
 elif style =='once_charge':
     pot = np.zeros(n_r)
     savedir_raw = os.path.join(os.getcwd(), 'one_iteration_phic', 'raw_outputs') + os.sep
     savedir_an = os.path.join(os.getcwd(), 'one_iteration_phic', 'analysed_outputs') + os.sep
-    #savedir_raw = os.getcwd() + "/one_iteration_phic/raw_outputs/"
-    #savedir_an = os.getcwd() + "/one_iteration_phic/analysed_outputs/"
+
 elif style =='many':
     pot = np.zeros(lr)
-    savedir_raw = os.path.join(os.getcwd(), 'many_iteration', 'raw_outputs') + os.sep
-    savedir_an = os.path.join(os.getcwd(), 'many_iteration', 'analysed_outputs') + os.sep
-    #savedir_raw = os.getcwd() + "/many_iteration/raw_outputs/"
-    #savedir_an = os.getcwd() + "/many_iteration/analysed_outputs/"
+    savedir_raw = os.path.join(os.getcwd(), 'many_iteration_TEST', 'raw_outputs') + os.sep
+    savedir_an = os.path.join(os.getcwd(), 'many_iteration_TEST', 'analysed_outputs') + os.sep
+
 else:
     print ('Must select an appropriate simulation style - see gen_var for details')
     sys.exit()
@@ -155,7 +154,7 @@ elif style =='once_charge':
 elif style =='many':
     i = many_start
     while rp[i] > rp_crit:
-        
+        print(i)
         low = next(p[0] for p in enumerate(r) if p[1] > rp[i])
         up = next(p[0] for p in enumerate(r) if p[1] > rc[i])
         r_internal = r[low:up]
@@ -174,7 +173,7 @@ elif style =='many':
         life = life + delta_t
 
         #shift = j - i # difference between the two "index times" after calculation of new rp
-        shift = 1
+        shift = 10
 
         elec_interp, ind_low, ind_up = com_int.common_interp(r, real_density[:,0], real_density[:,1]) # interpolating charge onto all gridpoints
         acc_elec_dens[ind_low:ind_up] = elec_interp[:] + acc_elec_dens[ind_low:ind_up]
@@ -193,7 +192,6 @@ elif style =='many':
         np.savetxt(os.path.join(savedir_an, 'stop_point_pot_test_t' + str(i) +'.txt'), stop_point, fmt = ('%f'))
         np.savetxt(os.path.join(savedir_an, 'density_pot_test_t' +str(i) +'.txt'), faux_density)
         np.savetxt(os.path.join(savedir_an, 'real_density_pot_test_t'+str(i) +'.txt'), real_density)
-
 else:
     print("I don't know how you got this far but your style is wrong")
     sys.exit()

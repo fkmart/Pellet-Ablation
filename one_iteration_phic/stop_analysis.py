@@ -34,7 +34,9 @@ import E_field_calc
 e_mid, e_bins, MB_norm = dist_calc(e_dist,ener_res, e_bar)
 
 le_mid = len(e_mid)
-mydir = './Analysed_Outputs'
+cwd = os.getcwd()
+#mydir = './Analysed_Outputs'
+mydir = os.path.join(cwd, 'Analysed_Outputs') + os.sep
 
 rp = stop_calc_rp_rc.calc_rp(t)
 rc = stop_calc_rp_rc.calc_rc(t)
@@ -48,7 +50,7 @@ for t in range(1,lt):
     #array3 = stop_analysis_particle_density.particle_density(array2,t,le_mid,e_bins, particle)
 
     term_en, ind = stop_analysis_term_ener.term_energy(particle, r, t, le, mydir)
-    stop_point = stop_analysis_stop_point.stop_point(term_en,ind, particle, r,t,le_mid), mydir)
+    stop_point = stop_analysis_stop_point.stop_point(term_en,ind, particle, r,t,le_mid, mydir)
     faux_density = stop_analysis_particle_density.particle_density(stop_point,t, le, e_bins, particle)
 
     #e_field,dens_out = E_field_calc.E_field(array3, r, rp, t)
