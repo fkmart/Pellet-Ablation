@@ -3,7 +3,7 @@ from gen_var import dr
 from numba import jit,float64
 #import time 
 
-@jit(nopython = True)
+#@jit(nopython = True)
 def SOR(A,x,f,r):
     rel_tol = 1e-8
     iteration = 0 
@@ -17,7 +17,7 @@ def SOR(A,x,f,r):
     while (np.any(res[1:-1] > np.abs(np.multiply(rel_tol,x[1:-1])))):
         for i in range(1, l-1):
             s = np.dot(A[i,:], x[:])
-            xnew = -f[i]*h**2  - (s - A[i,i]*x[i]) 
+            xnew = f[i]*h**2  - (s - A[i,i]*x[i]) 
             xold = x[i]
             x[i] = (1 - omega)*x[i] + xnew*omega/A[i,i]
             res[i] = np.abs(xold - x[i])
