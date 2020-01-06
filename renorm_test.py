@@ -13,7 +13,7 @@ load_dir = os.path.join(direc, 'one_iteration_phic', 'analysed_outputs') + os.se
 #load_dir = direc + '/one_iteration_phic/analysed_outputs/'
 i = t_start 
 
-k = sig[-2]
+k = sig[-1]
 rp = rp[i]
 fig, ax = plt.subplots()
 
