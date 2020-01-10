@@ -20,16 +20,23 @@ fig, ax = plt.subplots()
 #for a in range(0, len(sig)):
 #    k = sig[a]
 integ_arr = []
-for p in range(0, lp, p_inc):
+for p in range(0, lp, 5):
     file = np.loadtxt(load_dir + 'density_pot_test_t' +str(i) +'pot'+str(pel_pot[p])+'sig' + str(k) +'.txt')
     arr2 = np.loadtxt(load_dir + 'stop_point_pot_test_t' + str(i) +'pot'+str(pel_pot[p])+'sig' + str(k)+'.txt')
     real_dens, integrated,rdf,fd_int = stned.renorm_dens(file[:,0],file[:,1],e_bins,arr2,i,r )
     integ_arr = np.append(integ_arr, (integrated, pel_pot[p]))
-    ax.plot(real_dens[:,1], real_dens[:,0], label = r'$\phi = $' + str(pel_pot[p]))
+    #ax.plot(real_dens[:,1], real_dens[:,0], label = r'$\phi = $' + str(pel_pot[p]))
     #ax.plot(rdf[:750,1],rdf[:750,0], label = r'$\phi = $' + str(pel_pot[p]))
     #ax.plot(file[:,0], file[:,1], label = r'$\phi = $' + str(pel_pot[p])) 
     #ax.plot(fd_int[:,1], fd_int[:,0], label = r'$\phi = $' + str(pel_pot[p]))
     #print(ro.romberg_samp(fd_int[:,0], fd_int[:,1]))
+    "To test the difference between interpolated bins and raw bin data"
+    s = sum(file[:,1])
+
+    #fd_int[:,0] = fd_int[:,0]/(sum(fd_int[:,0]))
+    #fd_int[:,0] *= s 
+    ax.plot(file[:,0], file[:,1], label = 'raw - ' + str(pel_pot[p]))
+    ax.plot(fd_int[:,1], fd_int[:,0], label = 'interp - ' + str(pel_pot[p]))
     print(str(integrated) + ' and the peak potential is ' + str(pel_pot[p]))
 integ_arr = np.reshape(integ_arr, (int(len(integ_arr)*0.5),2), 'C')
 #ax.plot(integ_arr[:,1], integ_arr[:,0], label = r'$\sigma = $' + str(k))

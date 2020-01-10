@@ -11,7 +11,7 @@ Created on Fri Jan  4 15:32:45 2019
 #electrostatic history either by a forced potential or the previously deposited charge distribution
 
 #STYLE can be selected to be either 'once', 'once_charge', 'many'
-style = 'many'
+style = 'once_charge'
 
 import numpy as np
 
@@ -83,6 +83,7 @@ cloud_pot = 0.0
 lp = len(pel_pot)
 p_inc = 1
 sig = [0.5,0.6,0.7,0.8,0.9,1.0,1.25]
+sig = np.arange(0.40,1.50,0.05)
 
 """BACKGROUND PLASMA TERMS""" 
 phi_plas = 10**3 # in Volts
