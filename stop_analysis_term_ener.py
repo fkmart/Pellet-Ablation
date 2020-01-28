@@ -18,7 +18,7 @@ def term_energy(particle, r,t, le, direc):
     ind= []
     for j in range(0,le -1):
         
-        ener_arr = np.load(os.path.join(direc,'EvsR_' + particle + '_t'+str(t) +'_E0'+str(j)+'.npy'))
+        ener_arr = np.load(os.path.join(direc,'EvsR_' + particle +'_E0'+str(j)+'.npy'))
        
         lr = len(r) 
         

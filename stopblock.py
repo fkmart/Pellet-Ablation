@@ -112,7 +112,7 @@ def stopblock_phi(E,r, i, den,phi, savedir):
                       en[x] *= RME*M_fac
                   ener_prof = np.append(en, r[0:y]) # add the spacial points to ener_prof as final output
                   ener_prof = np.reshape(ener_prof, (int(len(ener_prof)/2),2), 'F') # reshape array for two columns                  
-                  np.save(savedir+'EvsR_'+particle +'_t%d_E0%d.npy' % (i,j), ener_prof) # save files as npy for analysis
+                  np.save(savedir+'EvsR_'+particle +'_E0%d.npy' % (j), ener_prof) # save files as npy for analysis
             
 """
     elif(particle == 'proton'):

@@ -89,17 +89,22 @@ if style == 'once':
     fig, ax = plt.subplots()
     for i in range(t_start, t_end, inc):
         print(i)
+        save_raw_t = os.path.join(savedir_raw, 't_' + str(i))
+        save_an_t = os.path.joi(savedir_an, 't_' + str(i))
+        if not os.path.exists(save_raw_t):
+            os.mkdir(save_raw_t)
+        if not os.path.exists(save_an_t):
+            os.mkdir(save_an_t)
         low = next(p[0] for p in enumerate(r) if p[1] > rp[i]) # finds first index with r > r_p
         up = next(p[0] for p in enumerate(r) if p[1] > rc[i]) # finds first index with r > r_c
         r_internal = r[low:up] 
         neut_dens[low:up] = 0.01*((1.0 + rp[i]**2)/(1.0 + r[low:up]**2))
         pot = np.zeros(n_r)
-        stopblock.stopblock_phi(e_mid, r,i, neut_dens, pot,savedir_raw)
-
-        term_en, ind = baf.stop_analysis_term_ener.term_energy(particle, r, i, le, savedir_raw)
-        stop_point = baf.stop_analysis_stop_point.stop_point(term_en,ind, particle, r,i,len(e_mid), savedir_raw)
+        stopblock.stopblock_phi(e_mid, r,i, neut_dens, pot,save_raw_t)
+        term_en, ind = baf.stop_analysis_term_ener.term_energy(particle, r, i, le, save_raw_t)
+        stop_point = baf.stop_analysis_stop_point.stop_point(term_en,ind, particle, r,i,len(e_mid), save_raw_t)
         faux_density,real_density = baf.stop_analysis_particle_density.particle_density(stop_point,i, len(e_mid), e_bins, particle,p,r_internal[0],r)
-        ret_flux_frac, ener_flux, lifetime = baf.stop_analysis_retarded_flux.retarded_flux(i,savedir_an, term_en)
+        ret_flux_frac, ener_flux, lifetime = baf.stop_analysis_retarded_flux.retarded_flux(i,save_an_t, term_en)
 
         """These following arrays aren't the msot relevant for this particular 
         type of simulation. Not really needed right now but can tidy up later"""
@@ -111,29 +116,37 @@ if style == 'once':
 
         "Saving analysed data for a singular Bethe calculation"
 
-        np.savetxt(os.path.join(savedir_an, 'terminal_energy_pot_test_t'+str(i)+'.txt'), term_en)   
-        np.savetxt(os.path.join(savedir_an, 'stop_point_pot_test_t' + str(i)+'.txt'), stop_point, fmt = ('%f'))
-        np.savetxt(os.path.join(savedir_an, 'density_pot_test_t' +str(i) +'.txt'), faux_density)
-        np.savetxt(os.path.join(savedir_an, 'real_density_pot_test_t'+str(i) +'.txt'), real_density)
+        np.savetxt(os.path.join(save_an_t, 'terminal_energy.txt'), term_en)   
+        np.savetxt(os.path.join(save_an_t, 'stop_point.txt'), stop_point, fmt = ('%f'))
+        np.savetxt(os.path.join(save_an_t, 'density.txt'), faux_density)
+        np.savetxt(os.path.join(save_an_t, 'real_density.txt'), real_density)
 
 elif style =='once_charge': 
+    save_raw_t = os.path.join(savedir_raw, 't_' + str(i))
+    save_an_t = os.path.joi(savedir_an, 't_' + str(i))
+    if not os.path.exists(save_raw_t):
+        os.mkdir(save_raw_t)
+    if not os.path.exists(save_an_t):
+        os.mkdir(save_an_t)
     low = next(p[0] for p in enumerate(r) if p[1] > rp[i])
     up = next(p[0] for p in enumerate(r) if p[1] > rc[i])
     r_internal = r[low:up]
     mid = int((up-low)/2)
+    mid = np.arange(low,up - low, 50) 
+    p = 5
     neut_dens[low:up] = 0.01*((1.0 + rp[i]**2)/(1.0 + r[low:up]**2))
     for a in range(0, len(sig)):
         print(a)
-        for p in range(0, lp, p_inc):
+        for m in mid:
             #pot = np.linspace(0, pel_pot[p], len(r_internal))
-            pot[low:up] = gauss_test_pot.gauss_func(pel_pot[p],sig[a],r_internal[mid],r_internal) # using gaussian test function
+            pot[low:up] = gauss_test_pot.gauss_func(pel_pot[5],sig[a],r_internal[m],r_internal) # using gaussian test function
             pot[:] /= RME*M_fac
-            stopblock.stopblock_phi(e_mid, r,i, neut_dens , pot, savedir_raw)
+            stopblock.stopblock_phi(e_mid, r,i, neut_dens , pot, save_raw_t)
 
-            term_en, ind = baf.stop_analysis_term_ener.term_energy(particle, r, i, le, savedir_raw)
-            stop_point = baf.stop_analysis_stop_point.stop_point(term_en,ind, particle, r,i,len(e_mid), savedir_raw)
+            term_en, ind = baf.stop_analysis_term_ener.term_energy(particle, r, i, le, save_raw_t)
+            stop_point = baf.stop_analysis_stop_point.stop_point(term_en,ind, particle, r,i,len(e_mid), save_raw_t)
             faux_density,real_density = baf.stop_analysis_particle_density.particle_density(stop_point,i, len(e_mid), e_bins, particle,p,r_internal[0],r)
-            ret_flux_frac, ener_flux, lifetime = baf.stop_analysis_retarded_flux.retarded_flux(i,savedir_an, term_en)
+            ret_flux_frac, ener_flux, lifetime = baf.stop_analysis_retarded_flux.retarded_flux(i,save_an_t, term_en)
 
             #Printing essential information as diagnostic
 
@@ -146,10 +159,10 @@ elif style =='once_charge':
 
             "Saving data for a singular Bethe calculation"
 
-            np.savetxt(os.path.join(savedir_an, 'terminal_energy_pot_test_t'+str(i)+'pot'+str(pel_pot[p])+'sig'+ str(sig[a]) +'.txt'), term_en)   
-            np.savetxt(os.path.join(savedir_an, 'stop_point_pot_test_t' + str(i) +'pot'+str(pel_pot[p])+'sig' + str(sig[a])+'.txt'), stop_point, fmt = ('%f'))
-            np.savetxt(os.path.join(savedir_an, 'density_pot_test_t' +str(i) +'pot'+str(pel_pot[p])+'sig' + str(sig[a]) +'.txt'), faux_density)
-            np.savetxt(os.path.join(savedir_an, 'real_density_pot_test_t'+str(i) +'pot'+str(pel_pot[p])+'sig' + str(sig[a])+'.txt'), real_density)
+            np.savetxt(os.path.join(saved_an_t, 'terminal_energy_pot_test_mid'+str(int(m))+'sig{:.2f}.txt'.format(round(sig[a],2))), term_en)
+            np.savetxt(os.path.join(save_an_t, 'stop_point_pot_test_mid'+str(int(m))+'sig{:.2f}.txt'.format(round(sig[a],2))), stop_point)
+            np.savetxt(os.path.join(save_an_t, 'density_pot_test_mid'+str(int(m))+'sig{:.2f}.txt'.format(round(sig[a],2))), faux_density)
+            np.savetxt(os.path.join(save_an_t, 'real_density_pot_test_mid'+str(int(m))+'sig{:.2f}.txt'.format(round(sig[a],2))), real_density)
 
 elif style =='many':
     i = many_start
@@ -197,7 +210,7 @@ else:
     sys.exit()
 
 "Saving compilation of Bethe calculations with varying potentials"
-np.savetxt(os.path.join(savedir_an, 'retarded_flux_pot_test_t'+str(i)+'pot' + str(pel_pot[p])+'.txt'), flux_arr)    
-np.savetxt(os.path.join(savedir_an, 'retarded_ener_flux_pot_test'+str(i)+ 'pot' + str(pel_pot[p]) + '.txt'), ener_flux_arr)
-np.savetxt(os.path.join(savedir_an, 'pellet_lifetime_retarding_potential_pot_test' + str(i)+ 'pot' + str(pel_pot[p]) +'.txt'), lifetime_arr)
+np.savetxt(os.path.join(save_an_t, 'retarded_flux_pot' + str(int(pel_pot[p]))+'.txt'), flux_arr)    
+np.savetxt(os.path.join(save_an_t, 'retarded_ener_flux_pot' + str(int(pel_pot[p])) + '.txt'), ener_flux_arr)
+np.savetxt(os.path.join(save_an_t, 'pellet_lifetime_retarding_potential_pot' + str(int(pel_pot[p])) +'.txt'), lifetime_arr)
 print('success')

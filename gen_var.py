@@ -83,7 +83,7 @@ cloud_pot = 0.0
 lp = len(pel_pot)
 p_inc = 1
 sig = [0.5,0.6,0.7,0.8,0.9,1.0,1.25]
-sig = np.arange(0.40,1.50,0.05)
+#sig = np.arange(0.40,1.50,0.05)
 
 """BACKGROUND PLASMA TERMS""" 
 phi_plas = 10**3 # in Volts

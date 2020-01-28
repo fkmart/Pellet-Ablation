@@ -26,6 +26,7 @@ colors = ['dodgerblue','seagreen', 'gold', 'lilac']
 sig = [0.5,0.6,0.7,0.8,0.9,1.0,1.25]
 low = next(p[0] for p in enumerate(r) if p[1] > rp[t_start])
 up = next(p[0] for p in enumerate(r) if p[1] > rc[t_start])
+mid = int((up-low)/2)
 r_internal = r[low:up]
 bin_colour = np.zeros((len(sig),r_internal.size, lp))
 X,Y = np.meshgrid(r_internal,sig)
@@ -58,6 +59,8 @@ zs = Z.shape
 oom = 10**(np.linspace(-5,-3,3))
 ch = np.zeros((len(sig),3,oom.size))
 ch_val = np.zeros((len(sig),3,oom.size))
+cent_line = np.zeros(len(sig))
+cent_line[:] = r_internal[mid]
 for k in range(0, oom.size):
     for i in range(0, 3):
         for j in range(0, len(sig)):
@@ -75,6 +78,8 @@ for i in range(0, 3):
         for b in range(0,oom.size):
             ax.plot(ch_val[:,-i-1,b], sig[:], pel_pot[-1 - 5*i]*np.ones(len(sig)), 
              color = colors[b])
+    ax.plot(cent_line[:], sig, pel_pot[-1-5*i]*np.ones(len(sig)), color = 'white', linestyle = '--',
+     alpha = 0.6)
 
 ax.set_xlabel(r'$\tilde{r}$', rotation = -0)
 ax.set_ylabel(r'$\tilde{\sigma}$', rotation  = 90)
@@ -95,5 +100,5 @@ ax.view_init(20,-60)
 ax.text2D(0.05,0.15, r'$\leftarrow$ to pellet', transform = ax.transAxes, rotation = -13)
 ax.text2D(0.50, 0.05, r'$\rightarrow$ to plasma', transform= ax.transAxes, rotation = -13)
 plt.legend(title = 'EEDF Bin Markers')
-plt.savefig(save_dir + '4d_atmos_marker.png', format = 'png', dpi = 1200)
+plt.savefig(save_dir + '4d_atmos_marker_cent.png', format = 'png', dpi = 1200)
 plt.show()

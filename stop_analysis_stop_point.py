@@ -13,7 +13,7 @@ def stop_point(arr,ind,particle, r, i, le_mid, direc):
     lr = len(r)
     arrsave2 = []
     for j in range(0,le_mid):
-        ener_arr = np.load(os.path.join(direc,'EvsR_' + particle + '_t'+str(i) +'_E0'+str(j)+'.npy'))
+        ener_arr = np.load(os.path.join(direc,'EvsR_' + particle +'_E0'+str(j)+'.npy'))
         arrsave2.append(ener_arr[0,0])
         x = ind[j]
         arrsave2.append(r[lr - x]) # removed a -1 

@@ -16,13 +16,18 @@ ind = 150
 
 fig, ax  = plt.subplots(figsize = (10,8))
 
-c = ['black', 'midnightblue', 'saddlebrown', 'y','forestgreen', 'darkred', 'dodgerblue', 'peru', 'gold', 'limegreen', 'tomato']
+c = ['forestgreen','midnightblue', 'saddlebrown', 'y', 'darkred', 'dodgerblue', 'peru', 'gold', 'limegreen', 'tomato', 'firebrick']
 y = str(1.00)
-for p in range(lp-1, -1,-2):
+plt.axvline(r_int[mid], color = 'black', linestyle = '--')
+file = np.loadtxt(sub_dir + 'density_pot_test_t' + str(t_start) + 'pot-0.0sig1.0.txt')
+ax.plot(file[:,0], file[:,1], color = 'black', label = 'Pure CSDA')
+u = 0
+for p in range(2, lp,2):
     pot = gtp.gauss_func(pel_pot[p], float(y), r_int[mid], r_int)
     x = format(pel_pot[p], '.1f') 
     file = np.loadtxt(sub_dir + 'density_pot_test_t' + str(t_start) + 'pot' + x + 'sig' + y + '.txt')
-    ax.plot(file[:,0], file[:,1], color = c[p], label = r'$\phi_{\mathrm{max}} = $' + str(int(pel_pot[p])) + 'V')
+    ax.plot(file[:,0], file[:,1], color = c[u], label = r'$\phi_{\mathrm{max}} = $' + str(int(pel_pot[p])) + 'V')
+    u +=1
 plt.legend(ncol = 2, loc = 'lower right')
 
 ax.set_xlabel(r'$\tilde{r}$', fontsize = 12)
@@ -40,6 +45,11 @@ ax.set_yscale('log')
     #pot = gtp.gauss_func(pel_pot[p],1.00, r_int[mid], r_int)
     #ax2.plot(r_int[-ind:], pot[-ind:], color = c[p], linestyle = '--')
 
-#plt.savefig(savedir + 'stop_point_pot_short_sig' + y + '.png', format = 'png', dpi = 1200)
+plt.text(0.8,0.0006, r'$\leftarrow$' + 'To pellet')
+plt.text(5.5, 0.0006, r'$\rightarrow$' + 'To plasma')
+
+y = float(y)
+y = str(int(y))
+plt.savefig(savedir + 'bins_pot_sig' + y + '.png', format = 'png', dpi = 1200)
 #plt.grid('on')
 plt.show()
