@@ -3,13 +3,13 @@ from gen_var import dr
 from numba import jit,float64
 #import time 
 
-#@jit(nopython = True)
+@jit(nopython = True)
 def SOR(A,x,f,r):
     rel_tol = 1e-8
     iteration = 0 
     omega = 1.00
     l = len(x)
-    h = r[-1]/l
+    h = r[-1]/(l-1)
     h = r[1] - r[0]
     omega = 2.0 / (1.0 + np.sin(np.pi * h))
 

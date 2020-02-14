@@ -89,8 +89,8 @@ if style == 'once':
     fig, ax = plt.subplots()
     for i in range(t_start, t_end, inc):
         print(i)
-        save_raw_t = os.path.join(savedir_raw, 't_' + str(i))
-        save_an_t = os.path.joi(savedir_an, 't_' + str(i))
+        save_raw_t = os.path.join(savedir_raw, 't_' + str(i)) + os.sep
+        save_an_t = os.path.join(savedir_an, 't_' + str(i)) + os.sep
         if not os.path.exists(save_raw_t):
             os.mkdir(save_raw_t)
         if not os.path.exists(save_an_t):
@@ -123,7 +123,7 @@ if style == 'once':
 
 elif style =='once_charge': 
     save_raw_t = os.path.join(savedir_raw, 't_' + str(i))
-    save_an_t = os.path.joi(savedir_an, 't_' + str(i))
+    save_an_t = os.path.join(savedir_an, 't_' + str(i))
     if not os.path.exists(save_raw_t):
         os.mkdir(save_raw_t)
     if not os.path.exists(save_an_t):
@@ -132,21 +132,41 @@ elif style =='once_charge':
     up = next(p[0] for p in enumerate(r) if p[1] > rc[i])
     r_internal = r[low:up]
     mid = int((up-low)/2)
-    mid = np.arange(low,up - low, 50) 
-    p = 5
+    mid_arr = np.arange(mid,up, 500) 
+    p = 10
     neut_dens[low:up] = 0.01*((1.0 + rp[i]**2)/(1.0 + r[low:up]**2))
     for a in range(0, len(sig)):
         print(a)
-        for m in mid:
+        for m in mid_arr:
+            #Directory Stuff
+            phi_max = pel_pot[p]
+            path1r = os.path.join(save_raw_t, 'phi_' + str(int(phi_max)))
+            path1a = os.path.join(save_an_t, 'phi_' + str(int(phi_max)))
+            path2r = os.path.join(path1r, 'sig_{:}'.format(int(100*sig[a])))
+            path2a = os.path.join(path1a, 'sig_{:}'.format(int(100*sig[a])))
+            path3r = os.path.join(path2r, 'cent_{:}'.format(m))
+            path3a = os.path.join(path2a, 'cent_{:}'.format(m))
+            if not os.path.exists(path3r):
+                if not os.path.exists(path2r):
+                    if not os.path.exists(path1r):
+                        os.mkdir(path1r)
+                    os.mkdir(path2r)
+                os.mkdir(path3r)
+            if not os.path.exists(path3a):
+                if not os.path.exists(path2a):
+                    if not os.path.exists(path1a):
+                        os.mkdir(path1a)
+                    os.mkdir(path2a)
+                os.mkdir(path3a)
             #pot = np.linspace(0, pel_pot[p], len(r_internal))
             pot[low:up] = gauss_test_pot.gauss_func(pel_pot[5],sig[a],r_internal[m],r_internal) # using gaussian test function
             pot[:] /= RME*M_fac
-            stopblock.stopblock_phi(e_mid, r,i, neut_dens , pot, save_raw_t)
+            stopblock.stopblock_phi(e_mid, r,i, neut_dens , pot, path3r)
 
-            term_en, ind = baf.stop_analysis_term_ener.term_energy(particle, r, i, le, save_raw_t)
-            stop_point = baf.stop_analysis_stop_point.stop_point(term_en,ind, particle, r,i,len(e_mid), save_raw_t)
+            term_en, ind = baf.stop_analysis_term_ener.term_energy(particle, r, i, le, path3r)
+            stop_point = baf.stop_analysis_stop_point.stop_point(term_en,ind, particle, r,i,len(e_mid), path3r)
             faux_density,real_density = baf.stop_analysis_particle_density.particle_density(stop_point,i, len(e_mid), e_bins, particle,p,r_internal[0],r)
-            ret_flux_frac, ener_flux, lifetime = baf.stop_analysis_retarded_flux.retarded_flux(i,save_an_t, term_en)
+            ret_flux_frac, ener_flux, lifetime = baf.stop_analysis_retarded_flux.retarded_flux(i,path3a, term_en)
 
             #Printing essential information as diagnostic
 
@@ -159,10 +179,10 @@ elif style =='once_charge':
 
             "Saving data for a singular Bethe calculation"
 
-            np.savetxt(os.path.join(saved_an_t, 'terminal_energy_pot_test_mid'+str(int(m))+'sig{:.2f}.txt'.format(round(sig[a],2))), term_en)
-            np.savetxt(os.path.join(save_an_t, 'stop_point_pot_test_mid'+str(int(m))+'sig{:.2f}.txt'.format(round(sig[a],2))), stop_point)
-            np.savetxt(os.path.join(save_an_t, 'density_pot_test_mid'+str(int(m))+'sig{:.2f}.txt'.format(round(sig[a],2))), faux_density)
-            np.savetxt(os.path.join(save_an_t, 'real_density_pot_test_mid'+str(int(m))+'sig{:.2f}.txt'.format(round(sig[a],2))), real_density)
+            np.savetxt(os.path.join(path3a, 'terminal_energy_pot_test.txt'), term_en)
+            np.savetxt(os.path.join(path3a, 'stop_point_pot_test.txt'), stop_point)
+            np.savetxt(os.path.join(path3a, 'density_pot_test_mid.txt'), faux_density)
+            np.savetxt(os.path.join(path3a, 'real_density_pot_test.txt'), real_density)
 
 elif style =='many':
     i = many_start
