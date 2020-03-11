@@ -1,5 +1,6 @@
 import numpy as np 
 import rkf45_mod as rkf 
+import math as mt 
 import matplotlib.pyplot as plt 
 
 #test function 
@@ -9,11 +10,11 @@ y0 = 1.0
 h = 0.01 
 x = np.arange(0.0,1.0 +h, h)
 def f(x,y):
-    return b*y 
+    return (1.0/(np.cos(x)))**2
 #analytical result 
 h_real = 0.0001
 x_real = np.arange(0.0, 1.0 + h_real,h_real)
-y_real = y0*np.exp(b*x_real)
+y_real = np.tan(x_real) + 1.0
 
 
 # time loop for RKF45
@@ -36,6 +37,6 @@ for i in range(nMax):
 
 fig, ax = plt.subplots()
 ax.plot(x_real,y_real, color = 'teal', label = 'analytical')
-ax.scatter(xrk,yrk, color = 'firebrick', label = 'rk solution')
+ax.scatter(xrk,yrk, color = 'firebrick', label = 'rk solution', marker = 'x')
 plt.legend(loc = 'best')
 plt.show()

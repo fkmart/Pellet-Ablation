@@ -10,8 +10,10 @@ def rkf(x,y,h,func,xr,xl):
     # max number of iterations
     N = int((xr - xl)/hmin)
     N = 100
-    if x+h > xr:
-        h = xr-x
+    #if x+h > xr:
+    #    h = xr-x
+    if x + h > xr:
+        h = xr - x 
     #butcher-tableau 
     BT = np.zeros((6,6))
     BT[1,:] = [0.25,0.25,0.0, 0.0, 0.0, 0.0]
@@ -39,13 +41,15 @@ def rkf(x,y,h,func,xr,xl):
         y4 = y + h*(BTS[0,0]*k1 + BTS[0,2]*k3 + BTS[0,3]*k4 + BTS[0,4]*k5)
         y5 = y + h*(BTS[1,0]*k1 + BTS[1,2]*k3 + BTS[1,3]*k4 + BTS[1,4]*k5 + BTS[1,5]*k6)
 
+        if (np.isnan(y4) == 'true') or (np.isnan(y5) == 'true'):
+            break
         err = np.abs(y4-y5)
 
         if err < err_min:
                 # if error small, enlarge h, but match final simulation time
             h = min(2.*h,hmax)            
-            if x+h > xr:
-                h = xr-x
+            if x + h > xr:
+                h = xr - x
                 break
         elif err > err_max:
                 # if error big, reduce h
@@ -57,4 +61,4 @@ def rkf(x,y,h,func,xr,xl):
     if i==N-1:
         print("max number of iterations reached, check parameters")
             
-    return x+h, y5, h , err
+    return x+h, y5, h , err, k1, k2, k3, k4, k5, k6

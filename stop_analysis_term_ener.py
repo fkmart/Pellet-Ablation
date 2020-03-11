@@ -13,7 +13,7 @@ import stop_analysis_stop_point
 import os
 def term_energy(particle, r,t, le, direc):
     from electron import RME, le
-    from gen_var import I 
+    from gen_var import I, rp
     arrsave1 = []
     ind= []
     for j in range(0,le -1):
@@ -21,7 +21,7 @@ def term_energy(particle, r,t, le, direc):
         ener_arr = np.load(os.path.join(direc,'EvsR_' + particle +'_E0'+str(j)+'.npy'))
        
         lr = len(r) 
-        
+        """
         ind.append(len(ener_arr))
 
         if (np.ma.size(ener_arr, axis = 0)<lr-1):
@@ -30,8 +30,13 @@ def term_energy(particle, r,t, le, direc):
             
             arrsave1.append(ener_arr[0,0])
             arrsave1.append(ener_arr[lr-2,0])
-        #arrsave2 = stop_analysis_stop_point.stop_point(ener_arr, ind, arrsave2, j, r)
-    
+        #arrsave2 = stop_analysis_stop_point.stop_point(ener_arr, ind, arrsave2, j, r)"""
+
+        if (ener_arr[-1,1] < rp[t]) or ener_arr[-1,1] == rp[t]:
+            arrsave1.append(ener_arr[0,0])
+            arrsave1.append(ener_arr[-1,0])
+        else:
+            pass
     arrsave1 = np.reshape(arrsave1, (int((len(arrsave1))/2),2), order = 'C')
     
     return arrsave1, ind#, arrsave2

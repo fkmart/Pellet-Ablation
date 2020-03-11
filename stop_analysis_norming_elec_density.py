@@ -19,7 +19,7 @@ def renorm_dens(r,faux_dens,e_bins, thing3,i,r_full):
     #need to interpolate to all interior points
     rpi = rp[i]
     rci = rc[i]
-    f = spit.interp1d(r, faux_dens,kind = 'cubic')
+    f = spit.interp1d(np.flip(r, axis = 0), np.flip(faux_dens,axis = 0),kind = 'cubic')
     
     low = next(p[0] for p in enumerate(r_full) if p[1] > r[-1])
     up = next(p[0] for p in enumerate(r_full) if p[1] > r[0])

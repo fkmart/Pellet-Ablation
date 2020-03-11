@@ -11,7 +11,7 @@ Created on Fri Jan  4 15:32:45 2019
 #electrostatic history either by a forced potential or the previously deposited charge distribution
 
 #STYLE can be selected to be either 'once', 'once_charge', 'many'
-style = 'once_charge'
+style = 'many'
 
 import numpy as np
 
@@ -30,9 +30,9 @@ dt = 0.002
 t = np.arange(tlow, tupper, dt) # SETTING TIME GRID
 lt = len(t)
 lr = lt
-t_start = 50
+t_start = 40
 t_end = 500
-inc = 100
+inc = 1000
 many_start = 50
 delta_t = 10**(-6) # in units of seconds - needed for number flux calculation
 life = 0.0
@@ -53,8 +53,9 @@ while (rc[-1]/(2.0**(n)) > x_res) :
 n_r = 2**n + 1
 
 r = np.linspace(0, rc[-1], n_r) # romberg grid defined
-
-"""#BERGER AND SELTZER/NETHE STOPPING POWER TERMS"""
+rgl = 256 # r grid lengths
+r_grid = np.linspace(0.0,rc[-1], rgl , endpoint = 'true')
+"""#BERGER AND SELTZER/BETHE STOPPING POWER TERMS"""
 zovera = 0.5 #Z/A
 I = 22.3 #Mean excitation energy in eV
 c1= 0.153536 #Some constant which carries units of MeVcm^2/g

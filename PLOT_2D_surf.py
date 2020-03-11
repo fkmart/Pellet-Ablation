@@ -15,6 +15,7 @@ sig = 1.0
 r = np.arange(rp[t_start], rc[t_start], x_res)
 #pot = format(pel_pot[p], '.1f')
 bin_arr = []
+t_start = 50
 for p in range(0,lp):
     pot = format(pel_pot[p], '.1f')
     k = format(sig , '.1f')

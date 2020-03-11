@@ -3,6 +3,7 @@ import numpy as np
 import os
 from gen_var import *
 from electron import RME as RME_e
+import dphi_calc
 #from numba import jit, float64
 #import stop_func
 
@@ -113,7 +114,145 @@ def stopblock_phi(E,r, i, den,phi, savedir):
                   ener_prof = np.append(en, r[0:y]) # add the spacial points to ener_prof as final output
                   ener_prof = np.reshape(ener_prof, (int(len(ener_prof)/2),2), 'F') # reshape array for two columns                  
                   np.save(os.path.join(savedir,'EvsR_'+particle +'_E0%d.npy' % (j)), ener_prof) # save files as npy for analysis
+
+
+def stopblock_phi_mod(E,r, i, den,phi, savedir):
+        from electron import RME, M_fac
+        from gen_var import zovera, delta, I, le, dr
+        import rk45_mod as rk 
+        le_mid = len(E)
+        particle = 'electron'
+        lr = len(r) #lr will change with time to maintain spatial resolution, must be recalculated at every time
+
+        def dens(x):
+            if x < rp[i]:
+                dens = 0.0
+            elif x > rc[i]:
+                dens = 0.0
+            else:
+                dens = 0.01 * ((1.0 + rp[i]**2)/(1.0 + x**2))
+            return dens
+        def bethe(x,T):
+            #den = eps*(1.0 +(rp[i*int(len(rp)/lt)])**2)/(1.0 + (x)**2)  #extra factor of dens withdrawn, j changed to i
+            den = dens(x)
+            nondim = (r0cgs/RME)*solid_dens 
+            c1= 0.153536 #factor that must be an amalgamation of many constants
+            B0 = np.log(0.5*(T**2)*(T+2.0)) + (1.0 +(T**2.0)/8.0 - (2.0*T+1)*np.log(2))/((T +1.0)**2.0) #factor from formula
+            thing = 2.0*np.log(I/(RME*M_fac))
+            B = B0 -2.0*np.log(I/(RME*M_fac)) #another factor from formula
+            dxde_gas = -nondim*den*c1*zovera*B/(2.0*T) #final stopping power form
+            return dxde_gas 
+        
+        for j in range(0, le_mid):
+              en = [E[j]/(RME*M_fac)] #non-dimensionalising energy for use in STOP function 
+              k1,k2,k3,k4 = 0,0,0,0 #RK4 algorithm terms
+              #z = np.arange(0,lr-1,1) #helps to determine r index in while loop with y counter
+              y = 0 #reset y counter to 0 after every energy
+              dphi = 0.0
+              x = rc[i]
+              x_tot = np.asarray(x)
+              I_non = I/(RME*M_fac)
+              energy = en[0]
+              while en[y] > I_non and en[y]+0.5*k1 > I_non and en[y]+0.5*k2 > I_non and en[y] + k3 >I_non and x>rp[i] and en[y] + dphi > I_non:
+                if (y <lr-2):
+                    phi1 = phi[lr-y -1]
+                    phi2 = phi[lr - y - 2]
+                    dphi = phi2 - phi1
+                else:
+                    dphi = 0.0
+                energy += dphi
+                en.append(energy)            #en is the accumulated energy profile   
+                x -= dr 
+                x_tot = np.append(x_tot,x)
+                energy, k1, k2, k3, k4 = rk.rk(x, en[-1],bethe,-dr) 
+                     
+                energy += dphi
+                y = y+1 # y counter increases
+                  
+              else:
+                  en = en[:] # remove last element of en #THIS IS THE POSSIBLE PROBLEM
+                  x_tot = x_tot[:]
+                  for s in range(0, len(en)):
+                      en[s] *= RME*M_fac
+                  ener_prof = np.append(en, x_tot) # add the spacial points to ener_prof as final output
+                  ener_prof = np.reshape(ener_prof, (int(len(ener_prof)/2),2), 'F') # reshape array for two columns                  
+                  np.save(os.path.join(savedir,'EvsR_'+particle +'_E0%d.npy' % (j)), ener_prof) # save files as npy for analysis           
+
+def stopblock_phi_mod_rkf(E,r_grid, i,phi, savedir):
+    from electron import RME, M_fac
+    from gen_var import zovera, delta, I, le, eps, rp, r0cgs, solid_dens
+    import rkf45_CSDA as rkf 
+    from gen_var import dr
+
+    le_mid = len(E)
+
+    particle = 'electron'
+
+    #butcher-tableau 
+    BT = np.zeros((6,6))
+    BT[1,:] = [0.25,0.25,0.0, 0.0, 0.0, 0.0]
+    BT[2,:] = [0.125, 3.0/32.0, 9.0/32.0, 0.0, 0.0, 0.0]
+    BT[3,:] = [12.0/13.0, 1932.0/2197.0, -7200.0/2197.0, 7296.0/2197.0, 0.0, 0.0]
+    BT[4,:] = [1.0, 439.0/216.0, -8.0, 3680.0/513.0, -845.0/4104.0, 0.0]
+    BT[5,:] = [0.5, -8.0/27.0, 2.0, -3544.0/2565.0, 1859./4140.0 , -11.0/40.0]
+    
+    #butcher-tableau for solutions
+
+    BTS = np.zeros((2,6))
+    BTS[0,:] = [25.0/216.0, 0.0, 1408.0/2565.0, 2197.0/4104.0, - 0.2, 0.0]
+    BTS[1,:] = [16.0/135.0, 0.0, 6656.0/12825.0,28561.0/56430.0, -9.0/50.0, 2.0/55.0 ]
+
+    def dens(x): 
+        den = eps * ((1.0 + rp[i]**2)/(1.0 + x**2))
+        return den
+
+    def bethe(x,T):
+        #den = eps*(1.0 +(rp[i*int(len(rp)/lt)])**2)/(1.0 + (x)**2)  #extra factor of dens withdrawn, j changed to i
+        den = dens(x)
+        nondim = (r0cgs/RME)*solid_dens 
+        c1= 0.153536 #factor that must be an amalgamation of many constants
+        B0 = np.log(0.5*(T**2)*(T+2.0)) + (1.0 +(T**2.0)/8.0 - (2.0*T+1)*np.log(2))/((T +1.0)**2.0) #factor from formula
+        thing = 2.0*np.log(I/(RME*M_fac))
+        B = B0 -2.0*np.log(I/(RME*M_fac)) #another factor from formula
+        dxde_gas = -nondim*den*c1*zovera*B/(2.0*T) #final stopping power form
+        return dxde_gas
+
+    for j in range(0, le_mid):
+        print(j)
+        en = [E[j]/(RME*M_fac)] #non-dimensionalising energy for use in STOP function 
+        k1,k2,k3,k4,k5,k6 = 0,0,0,0,0,0 #RKF4 algorithm terms
+        #z = np.arange(0,lr-1,1) #helps to determine r index in while loop with y counter
+        y = 0 #reset y counter to 0 after every energy
+        dphi = 0.0
+        x = rc[i]
+        x_tot = np.asarray(x)
+        I_non = I/(RME*M_fac)
+        energy = en[0]
+        while en[y] > I_non and en[y]+dr*(k1*BT[1,1]) > I_non and en[y]+dr*(k1*BT[2,1] + 
+          k2*BT[2,2]) > I_non and en[y] + dr*(k1*BT[3,1] + k2*BT[3,2] + 
+          k3*BT[3,3]) >I_non and en[y] + dr*(k1*BT[4,1] + 
+          k2*BT[4,2] + k3*BT[4,3] + k4*BT[4,4]) and en[y] + dr*(k1*BT[5,1] + k2*BT[5,2] + 
+          k3*BT[5,3] + k4*BT[5,4] + k5*BT[5,5]) and x>rp[i] and en[y] + dphi > I_non:
             
+            x, energy,dr, err, new_k = rkf.rkf(x, en[-1],dr, bethe, BT, BTS, rc[i], rp[i]) 
+            k1,k2,k3,k4,k5,k6 = new_k[0], new_k[1], new_k[2], new_k[3], new_k[4], new_k[5]
+            dphi = dphi_calc.dphi_calc(x+np.abs(dr),x,r_grid, phi)
+            energy += dphi
+            en.append(energy)            #en is the accumulated energy profile   
+            x_tot = np.append(x_tot,x)
+            #x -= np.abs(dr) 
+            y = y+1 # y counter increases
+                  
+        else:
+              en = en[:] # remove last element of en #THIS IS THE POSSIBLE PROBLEM
+              x_tot = x_tot[:]
+              en_check = en[-200:]
+              x_check = x_tot[-200:]
+              for s in range(0, len(en)):
+                  en[s] *= RME*M_fac
+              ener_prof = np.append(en, x_tot) # add the spacial points to ener_prof as final output
+              ener_prof = np.reshape(ener_prof, (int(len(ener_prof)/2),2), 'F') # reshape array for two columns                  
+              np.save(os.path.join(savedir,'EvsR_'+particle +'_E0%d.npy' % (j)), ener_prof) # save files as npy for analysis         
 """
     elif(particle == 'proton'):
         

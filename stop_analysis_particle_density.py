@@ -11,25 +11,26 @@ import os
 from gen_var import *
 import stop_analysis_norming_elec_density 
 
-def particle_density(arrsave2, t, le, ebins,particle,mydir,r_pel,r):
+def particle_density(arrsave2, t, le, ebins,particle,mydir,r):
     e_dens = 0.0
     e_depo = []
     #posit = []
     arrsave3 = []
     arrsave4 = []
-    for j in range(0,le -2):
+    for j in range(0,le-1):
          if arrsave2[j,1] == arrsave2[j+1,1]:
              e_dens = ebins[j] + e_dens
 
          elif arrsave2[j,1] != arrsave2[j+1,1]:
              e_dens = ebins[j] + e_dens
              e_depo.append(e_dens)
-             arrsave3.append(np.asarray((arrsave2[j,1],e_dens)))
+             arrsave3.append(np.asarray((e_dens,arrsave2[j,1])))
              e_dens = 0.0
-    if arrsave2[-2,1] == arrsave2[-1,1]:
-        pass
-    else:
-        arrsave3.append(np.asarray(arrsave2[-1,1]), ebins[-1])
+    #if arrsave2[-2,1] == arrsave2[-1,1]:
+    #    pass
+    #else:
+    #    arrsave3.append(np.asarray(arrsave2[-1,1]), ebins[-1])
+    arrsave3.append(np.asarray((e_dens,arrsave2[-1,1])))
     """if (e_dens ==0.0):
         arrsave3 = np.asarray(arrsave3)
     else:
@@ -41,6 +42,6 @@ def particle_density(arrsave2, t, le, ebins,particle,mydir,r_pel,r):
     #a2 = np.flip(arrsave3[:,1],axis = 0)
     a1 = arrsave3[:,0]
     a2 = arrsave3[:,1]
-    arrsave4 = stop_analysis_norming_elec_density.renorm_dens(a1[:], a2[:],ebins, arrsave2,t,r)
+    #arrsave4 = stop_analysis_norming_elec_density.renorm_dens(a1[:], a2[:],ebins, arrsave2,t,r)
     return arrsave3, arrsave4
     
