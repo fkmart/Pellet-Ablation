@@ -61,4 +61,4 @@ def rkf(x,y,h,func,xr,xl):
     if i==N-1:
         print("max number of iterations reached, check parameters")
             
-    return x+h, y5, h , err, k1, k2, k3, k4, k5, k6
+    return x+h, y5, h , err #, k1, k2, k3, k4, k5, k6

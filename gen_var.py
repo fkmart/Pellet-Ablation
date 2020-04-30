@@ -11,7 +11,7 @@ Created on Fri Jan  4 15:32:45 2019
 #electrostatic history either by a forced potential or the previously deposited charge distribution
 
 #STYLE can be selected to be either 'once', 'once_charge', 'many'
-style = 'many'
+style = 'once'
 
 import numpy as np
 
@@ -53,7 +53,7 @@ while (rc[-1]/(2.0**(n)) > x_res) :
 n_r = 2**n + 1
 
 r = np.linspace(0, rc[-1], n_r) # romberg grid defined
-rgl = 256 # r grid lengths
+rgl = 512 # r grid lengths
 r_grid = np.linspace(0.0,rc[-1], rgl , endpoint = 'true')
 """#BERGER AND SELTZER/BETHE STOPPING POWER TERMS"""
 zovera = 0.5 #Z/A
@@ -90,7 +90,7 @@ sig = [0.5,0.6,0.7,0.8,0.9,1.0,1.25]
 phi_plas = 10**3 # in Volts
 m_e = 9.10938356*10**(-31) # in kg
 m_p = 1.6726219*10**(-27) # in kg
-dens_plas = 10**20 # in m^-3
+dens_plas = 10**19 # in m^-3
 vrms_e = np.sqrt(2.0*e*phi_plas/m_e) #in ms^-1
 F0 = 0.25*dens_plas*vrms_e # flux of particles per square metre per second
 

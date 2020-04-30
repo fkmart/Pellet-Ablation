@@ -9,16 +9,19 @@ def rkf(x,y,h,func,BT,BTS,xr,xl):
     hmax = 5e-1
     h_arr = []
     br_no = 10
-    # min and max errors
+    """# min and max errors
     if y > 10000.0/(RME*M_fac): #1e-8 and 1e-4 works
-        err_min = 1e-8 
-        err_max = 1e-6
+        err_min = 1e-8
+        err_max = 1e-5
     elif y > 1000.0/(RME*M_fac): # 1e-10 and 1e-6 works
-        err_min = 1e-9
+        err_min = 1e-10
         err_max = 1e-7
     else: # 1e-13 and 1e-8 works
-        err_min = 1e-11
-        err_max = 1e-8
+        err_min = 1e-12
+        err_max = 1e-8"""
+
+    err_min = 1e-8
+    err_max = 1e-5
     # max number of iterations
     N = int((xr - xl)/hmin)
     N = 100
@@ -26,7 +29,6 @@ def rkf(x,y,h,func,BT,BTS,xr,xl):
     #    h = xr-x
     if x - np.abs(h) < xl:
         h = x - xl 
-    
     #calculate the k's 
     for i in range(N):
         h = -np.abs(h)
@@ -41,7 +43,8 @@ def rkf(x,y,h,func,BT,BTS,xr,xl):
         y4 = y - h*(BTS[0,0]*k1 + BTS[0,2]*k3 + BTS[0,3]*k4 + BTS[0,4]*k5)
         y5 = y - h*(BTS[1,0]*k1 + BTS[1,2]*k3 + BTS[1,3]*k4 + BTS[1,4]*k5 + BTS[1,5]*k6)
 
-        err = np.abs(y4-y5)
+        y_norm = np.max(np.asarray(y4,y5))
+        err = np.abs(y4/y_norm-y5/y_norm) # need to remove y norms if this doesn't work
 
         if err < err_min and y4 > 0.0 and y5 > 0.0:
                 # if error small, enlarge h, but match final simulation time

@@ -155,23 +155,27 @@ def stopblock_phi_mod(E,r, i, den,phi, savedir):
               energy = en[0]
               while en[y] > I_non and en[y]+0.5*k1 > I_non and en[y]+0.5*k2 > I_non and en[y] + k3 >I_non and x>rp[i] and en[y] + dphi > I_non:
                 if (y <lr-2):
-                    phi1 = phi[lr-y -1]
-                    phi2 = phi[lr - y - 2]
+                    phi1 = phi[-y -1]
+                    phi2 = phi[ - y - 2]
                     dphi = phi2 - phi1
                 else:
                     dphi = 0.0
-                energy += dphi
-                en.append(energy)            #en is the accumulated energy profile   
-                x -= dr 
-                x_tot = np.append(x_tot,x)
+                #energy += dphi
+                            #en is the accumulated energy profile   
+                 
+                
                 energy, k1, k2, k3, k4 = rk.rk(x, en[-1],bethe,-dr) 
-                     
+                x -= dr
                 energy += dphi
+                en.append(energy)
+                x_tot = np.append(x_tot,x)
                 y = y+1 # y counter increases
                   
               else:
                   en = en[:] # remove last element of en #THIS IS THE POSSIBLE PROBLEM
                   x_tot = x_tot[:]
+                  if j ==161:
+                      print('here')
                   for s in range(0, len(en)):
                       en[s] *= RME*M_fac
                   ener_prof = np.append(en, x_tot) # add the spacial points to ener_prof as final output
@@ -180,7 +184,7 @@ def stopblock_phi_mod(E,r, i, den,phi, savedir):
 
 def stopblock_phi_mod_rkf(E,r_grid, i,phi, savedir):
     from electron import RME, M_fac
-    from gen_var import zovera, delta, I, le, eps, rp, r0cgs, solid_dens
+    from gen_var import zovera, delta, I, le, eps, rp, r0cgs, solid_dens,rc
     import rkf45_CSDA as rkf 
     from gen_var import dr
 
@@ -224,10 +228,11 @@ def stopblock_phi_mod_rkf(E,r_grid, i,phi, savedir):
         #z = np.arange(0,lr-1,1) #helps to determine r index in while loop with y counter
         y = 0 #reset y counter to 0 after every energy
         dphi = 0.0
+        tot_pot = 0.0
         x = rc[i]
         x_tot = np.asarray(x)
         I_non = I/(RME*M_fac)
-        energy = en[0]
+        dr = 1e-3
         while en[y] > I_non and en[y]+dr*(k1*BT[1,1]) > I_non and en[y]+dr*(k1*BT[2,1] + 
           k2*BT[2,2]) > I_non and en[y] + dr*(k1*BT[3,1] + k2*BT[3,2] + 
           k3*BT[3,3]) >I_non and en[y] + dr*(k1*BT[4,1] + 
@@ -237,22 +242,23 @@ def stopblock_phi_mod_rkf(E,r_grid, i,phi, savedir):
             x, energy,dr, err, new_k = rkf.rkf(x, en[-1],dr, bethe, BT, BTS, rc[i], rp[i]) 
             k1,k2,k3,k4,k5,k6 = new_k[0], new_k[1], new_k[2], new_k[3], new_k[4], new_k[5]
             dphi = dphi_calc.dphi_calc(x+np.abs(dr),x,r_grid, phi)
+            tot_pot += dphi
             energy += dphi
             en.append(energy)            #en is the accumulated energy profile   
             x_tot = np.append(x_tot,x)
-            #x -= np.abs(dr) 
             y = y+1 # y counter increases
                   
         else:
-              en = en[:] # remove last element of en #THIS IS THE POSSIBLE PROBLEM
+              en = en[:] 
               x_tot = x_tot[:]
-              en_check = en[-200:]
+              en_check = np.asarray(en[-200:]) * RME*M_fac
+              tot_pot *= RME*M_fac
               x_check = x_tot[-200:]
               for s in range(0, len(en)):
                   en[s] *= RME*M_fac
               ener_prof = np.append(en, x_tot) # add the spacial points to ener_prof as final output
               ener_prof = np.reshape(ener_prof, (int(len(ener_prof)/2),2), 'F') # reshape array for two columns                  
-              np.save(os.path.join(savedir,'EvsR_'+particle +'_E0%d.npy' % (j)), ener_prof) # save files as npy for analysis         
+              np.save(os.path.join(savedir,'EvsR_'+particle +'_E0%d.npy' % (j)), ener_prof) # save files as npy for analysis      
 """
     elif(particle == 'proton'):
         

@@ -15,7 +15,7 @@ def e_mover(t, shift, grid1,den_elec):
 
     n_dens1 = eps*((1.0 + rp1**2)/(1.0 + grid1[:]**2))
 
-    const = n_dens1[-1]*rcd[0,t]
+    const = n_dens1[-1]*rcd[t,-1]
     rdot = np.zeros(len(grid1))
     frac_change = (1.0 + rp2**2)/(1.0 + rp1**2)
     for i in range(0, len(grid1)):

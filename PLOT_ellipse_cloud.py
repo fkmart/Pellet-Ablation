@@ -8,7 +8,7 @@ from mpl_toolkits.mplot3d import Axes3D
 fig = plt.figure() 
 ax = fig.add_subplot(111, polar = 'true')
 
-i = 40
+i = 300
 rc_par = rc[i] # analytically known
 rp_par = rp[i] # analytically known
 
@@ -46,8 +46,11 @@ for i in range(0, len(theta)):
 cmap = plt.get_cmap('viridis')
 ax.set(xlim = (0.0,2*np.pi), ylim = (0.0,35.0))
 ax.set_yticks([5,15,25,35])
+ax.set_xticks([])
 #norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
 im = ax.pcolormesh(T, R, D, cmap=cmap, norm = colors.LogNorm(vmax = 0.01, vmin = D[0,int(rc_ind[0])-1]))
 plt.grid(axis = 'y', color = 'black')
 fig.colorbar(im, ax=ax)
+plt.text(45,40, r'$\rightarrow \mathrm{\mathbf{B}}$', fontsize = 14)
+plt.savefig('elliptical_cloud.png', format = 'png', dpi = 1200)
 plt.show()

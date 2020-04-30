@@ -44,7 +44,7 @@ else:
     pass
 
 neut_dens = np.zeros(n_r) # neutral density array of equal length, only some values will be non-zero
-push_e_dens = np.zeros(len(r_grid))
+push_e_dens = np.zeros(rgl)
 lr = len(r)
 
 #Important to print the style being used here so you don't totally miss it
@@ -53,6 +53,7 @@ print('The scenario tested here is: ' + str(style))
 "Must now establish how the simulation will proceed with choice of style"
 if style == 'once':
     pot = np.zeros(lr)
+    #pot = np.linspace(-2.8*10**-3, 0.0, num = lr, endpoint = 'true')
     savedir_raw = os.path.join(os.getcwd(), 'one_iteration', 'raw_outputs') + os.sep
     savedir_an = os.path.join(os.getcwd(), 'one_iteration', 'analysed_outputs') + os.sep
 
@@ -84,7 +85,7 @@ for f in filelist_an:
 flux_arr = []
 ener_flux_arr = []
 lifetime_arr = []
-acc_elec_dens = np.zeros(256) # initial electron density - zero everywhere
+acc_elec_dens = np.zeros(rgl) # initial electron density - zero everywhere
 pot /= RME*M_fac # normalise electric potential for stopblock calc
 
 if style == 'once':
@@ -101,8 +102,12 @@ if style == 'once':
         up = next(p[0] for p in enumerate(r) if p[1] > rc[i]) # finds first index with r > r_c
         r_internal = r[low:up] 
         neut_dens[low:up] = 0.01*((1.0 + rp[i]**2)/(1.0 + r[low:up]**2))
+        r_grid = np.linspace(rp[i], rc[i], num = 512, endpoint = 'true')
         pot = np.zeros(len(r_grid))
-        #stopblock.stopblock_phi_mod(e_mid, r,i, neut_dens, pot,save_raw_t) # change this line for new mods
+        #pot[low:up] = np.linspace(-2.8e3,0.0,num = up-low, endpoint = 'true')
+        #pot = np.linspace(-2.8e3,0.0, num = len(r_grid), endpoint = 'true')
+        pot = pot/(RME*M_fac)
+        #stopblock.stopblock_phi_mod(e_mid, r,i, neut_dens, pot[low:up],save_raw_t) # change this line for new mods
         stopblock.stopblock_phi_mod_rkf(e_mid, r_grid, i, pot, save_raw_t)
         term_en, ind = baf.stop_analysis_term_ener.term_energy(particle, r, i, le, save_raw_t)
         stop_point = baf.stop_analysis_stop_point.stop_point(term_en,ind, particle, r,i,len(e_mid), save_raw_t)
@@ -110,7 +115,7 @@ if style == 'once':
         ind = np.where(stop_point[:,1] < rp[i])
         ind = ind[0]
         faux_density,real_density = baf.stop_analysis_particle_density.particle_density(stop_point,i, len(e_mid), e_bins, particle,p,r)
-        push_e_dens = gp.pusher(faux_density, r_grid, push_e_dens)
+        push_e_dens = gp.pusher(faux_density, r_grid)
         ret_flux_frac, ener_flux, lifetime = baf.stop_analysis_retarded_flux.retarded_flux(i,save_an_t, term_en)
 
         """These following arrays aren't the most relevant for this particular 
@@ -123,10 +128,10 @@ if style == 'once':
 
         "Saving analysed data for a singular Bethe calculation"
 
-        np.savetxt(os.path.join(save_an_t, 'terminal_energy.txt'), term_en)   
-        np.savetxt(os.path.join(save_an_t, 'stop_point.txt'), stop_point, fmt = ('%f'))
-        np.savetxt(os.path.join(save_an_t, 'density.txt'), faux_density)
-        np.savetxt(os.path.join(save_an_t, 'real_density.txt'), real_density)
+        np.savetxt(os.path.join(save_an_t, 'terminal_energy_neutral.txt'), term_en)   
+        np.savetxt(os.path.join(save_an_t, 'stop_point_neutral.txt'), stop_point, fmt = ('%f'))
+        np.savetxt(os.path.join(save_an_t, 'density_neutral.txt'), faux_density)
+        np.savetxt(os.path.join(save_an_t, 'real_density_neutral.txt'), real_density)
 
 elif style =='once_charge': 
     save_raw_t = os.path.join(savedir_raw, 't_' + str(i))
@@ -195,10 +200,10 @@ elif style =='many':
     i = many_start
     phic = np.zeros(rgl)
     
-    while rp[i] > rp_crit:
+    while rp[i] > rp_crit and i<80:
         print(i)
         pot = np.zeros(rgl)
-        pot[0] = -2.8
+        pot[0] = 0.0
         r_grid = np.linspace(rp[i], rc[i], endpoint = 'true', num = rgl)
         low = next(p[0] for p in enumerate(r) if p[1] > rp[i])
         up = next(p[0] for p in enumerate(r) if p[1] > rc[i])
@@ -211,6 +216,11 @@ elif style =='many':
         faux_density,real_density = baf.stop_analysis_particle_density.particle_density(stop_point,i,len(e_mid),e_bins,particle,savedir_an,r)
         ret_flux_frac, ener_flux, lifetime = baf.stop_analysis_retarded_flux.retarded_flux(i,savedir_an, term_en)
 
+        A = discret_mat.discret(r_grid)
+        pot_1 = np.zeros(len(r_grid))
+        pot_1[0] = -2.8
+        non_dim = r0*r0*e*dens_plas/(epsilon0*1000)
+        
         """np.append(flux_arr, (ret_flux_frac, pel_pot[p])) #Append potential dependant arrays with new quantities
         flux_arr.append((ret_flux_frac, pel_pot[p]))
         ener_flux_arr.append((ener_flux, pel_pot[p]))
@@ -225,6 +235,22 @@ elif style =='many':
         new_grid = np.linspace(rp[i+shift], rc[i+shift], num = rgl, endpoint = 'true')
         pushed_e_dens = gp.pusher(faux_density, r_grid)
         acc_elec_dens += pushed_e_dens
+        phi_before = SOR.SOR(A,pot_1,non_dim*acc_elec_dens,r_grid)
+        fig,ax = plt.subplots(figsize = (8,6))
+        l1 = ax.plot(r_grid,phi_before, color = 'navy', label = r'$\tilde{\phi}$')
+        plt.text(1.0, -0.5, r'$\leftarrow$ to pellet')
+        ax.set_xlabel(r'$\tilde{r}$', fontsize = 12)
+        ax.set_ylabel(r'$\tilde{\phi}$', fontsize = 12, rotation = 0)
+        ax2 = ax.twinx()
+        ax2.set_ylabel(r'$\tilde{n}$', fontsize =12, rotation = 0)
+        l2 = ax2.plot(r_grid,acc_elec_dens, color = 'orange', label = r'$\tilde{n}$')
+        lin = l1 + l2 
+        lab = [l.get_label() for l in lin]
+        plt.legend(lin, lab)
+        plt.savefig('phi_before_t' + str(i) + '.png', format = 'png', dpi = 1200)
+        plt.show()
+
+        
         e_rem,e_move = elec_transport_push.e_mover(i,shift,r_grid,acc_elec_dens)
         acc_elec_dens = gp.pusher(e_rem,new_grid)
         acc_elec_dens += gp.pusher(e_move, new_grid)
@@ -242,14 +268,21 @@ elif style =='many':
         #phic = SOR.SOR(A, pot[low_2:up_2], acc_elec_dens[low_2:up_2], r_domain)
         non_dim = r0*r0*e*dens_plas/(epsilon0*1000)
         phic = SOR.SOR(A, pot,acc_elec_dens,new_grid)
-        fig,ax = plt.subplots()
-        ax.plot(new_grid, phic*1000, label = 'pot')
+        fig,ax = plt.subplots(figsize = (8,6))
+        l1 = ax.plot(new_grid, phic, label = 'pot')
+        plt.text(1.0, -0.5, r'$\leftarrow$ to pellet')
+        ax.set_xlabel(r'$\tilde{r}$', fontsize = 12, rotation = 0)
+        ax.set_ylabel(r'$\tilde{\phi}$', fontsize = 12)
         ax2 = ax.twinx() 
-        ax2.plot(new_grid, acc_elec_dens, label = 'dens', color = 'orange')
-        plt.legend()
+        ax2.set_ylabel(r'$\tilde{n}$', fontsize = 12, rotation = 0)
+        l2 = ax2.plot(new_grid, acc_elec_dens, label = 'dens', color = 'orange')
+        lin = l1 + l2 
+        lab = [l.get_label() for l in lin]
+        plt.legend(lin, lab)
+        plt.savefig('phi_after_t' + str(i) + '.png', format = 'png', dpi = 1200)
         plt.show()
         "Saving data for a singular Bethe calculation"
-
+        i+=shift
         np.savetxt(os.path.join(savedir_an, 'terminal_energy_pot_test_t'+str(i)+'.txt'), term_en)   
         np.savetxt(os.path.join(savedir_an, 'stop_point_pot_test_t' + str(i) +'.txt'), stop_point, fmt = ('%f'))
         np.savetxt(os.path.join(savedir_an, 'density_pot_test_t' +str(i) +'.txt'), faux_density)

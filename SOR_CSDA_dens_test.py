@@ -23,15 +23,23 @@ dens_full = g(r_cloud)
 sum_dens = np.sum(dens) 
 renorm_dens = sum_dens*dens_full/(np.sum(dens_full))
 
+x0 = 1e-3
+q0 = 1.6*10**(-19)
+n0 = 10**19
+esp0 = 8.854*10**(-12)
+V0 = 1e3
+K = x0*x0*q0*n0/(esp0*V0)
+print(K)
+
 A = discret_mat.discret(r_cloud)
 phi = np.zeros(len(r_cloud))
-phi[0] = -2.80 
+phi[0] = 0.0
 phi[-1] = 0.0
-phi = SOR.SOR(A,phi,100*dens_full,r_cloud)
+phi = SOR.SOR(A,phi, K*dens_full,r_cloud)
 
 fig, ax  = plt.subplots() 
 ax2 = ax.twinx() 
-l1 = ax.plot(r_cloud,phi, color = 'blue', label = r'$\tilde{\phi}$')
+l1 = ax.plot(r_cloud,phi*V0, color = 'blue', label = r'$\tilde{\phi}$')
 l2 = ax2.plot(r_cloud, dens_full, color = 'red', label = r'$\tilde{n}$')
 ax.set_xlabel(r'$\tilde{r}$', fontsize = 12, rotation = 0)
 ax.set_ylabel(r'$\tilde{\phi}$', fontsize = 12, rotation = 0)
@@ -39,5 +47,5 @@ ax2.set_ylabel(r'$\tilde{n}$', fontsize = 12, rotation = 0)
 lines = l1 + l2 
 labs = [l.get_label() for l in lines]
 ax.legend(lines,labs)
-plt.savefig('SOR_CSDA_test.png', format = 'png', dpi = 1200)
+#plt.savefig('SOR_CSDA_test.png', format = 'png', dpi = 1200)
 plt.show()
