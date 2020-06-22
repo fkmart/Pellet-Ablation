@@ -134,76 +134,32 @@ def rdot(t,rc,rp):
     print(rcd[990])"""
     return rcd # out, r_pl 
 
-"""
-c = [-1.0, -5.0, -10.0, -100.0]
-fig, ax = plt.subplots()
-ax.set_xlabel(r'$\tilde{t}$', fontsize = 14)
-ax.set_ylabel(r'$\frac{\mathrm{d}\tilde{A}}{\mathrm{d}\tilde{t}}$', fontsize = 14, rotation = 0)  
-ax.yaxis.set_label_coords( -0.06, 0.45)
-ax.xaxis.set_label_coords(0.50, -0.03)
-plt.title('Modified ' + r'$D^2$' + ' law for varying ' + r'$c_2$')
-for i in range(0,len(c)):
-    dadt = dadt = c1*np.tanh((c[i]*(1-t)))
-    plt.plot(t, dadt, label = r'$c_2 = ' + str(c[i])+'$')
-    plt.legend()
-plt.show()
-"""
-"""c2 = [-1,-5,-10,-100]
-rplot = np.zeros((len(c2), len(t)))
-rclot = np.zeros((len(c2), len(t)))
-for i in range(0, len(c2)):
-   print(i)
-   rplot[i,:] = calc_rp(c2[i] ,t)
-   rclot[i,:] = calc_rc(c2[i], t)"""
-"""
-rp = calc_rp(t)
-rc = calc_rc(t)
-rcd, rplot  = rcdot(t, rc, rp)
+def u_solution(t1,t2,l):
+    from gen_var import rc,rp, eps
+    from gen_var import t as time
+    import math as mt 
+    shift = t2-t1 
+    rp1,rp2 = rp[t1], rp[t2]
+    rc1,rc2 = rc[t1], rc[t2] 
 
-dt = t[1] - t[0]
-fig, ax = plt.subplots()
-ax.set_xlabel(r'$\tilde{r}$', fontsize = 14)
-ax.set_ylabel(r'$\tilde{v}$', fontsize = 14, rotation = 0)
-plt.title('Outflow velocity of cloud against cloud size for several times')
+    r1 = np.linspace(rp1,rc1, num = l, endpoint = 'true')
+    r2 = np.linspace(rp2,rc2, num = l, endpoint = 'true')
 
-for i in range(10, len(t),20 ):
-    plt.plot(rplot[i,:], rcd[i, :], label = r'$\tilde{t} = '+str(int(100*(dt*i))/100.0)+'$')
-    
-plt.legend()
-plt.show()"""
+    rho1 = eps*(1.0 + rp1**2)/(1.0 + r1**2) 
+
+    rpd = np.zeros(len(time))
+    for i in range(0, len(time)):
+        rpd[i] = -0.5*(1.0/(np.sqrt(np.log(mt.cosh(1)))))*(mt.tanh(1 - time[i])/(np.sqrt(np.log(mt.cosh(1 - time[i])))))
+
+    rpd1 = rpd[40]
+    rpd2 = rpd[60]
+
+    rdots, useless = rcdot(time,rc,rp)
 
 
+    rcd1 = rdots[0,t1]
 
-"""fig, ax1  = plt.subplots()
-ax1.set_xlabel(r'$\tilde{t}$', fontsize = 14)
-ax1.set_ylabel(r'$\tilde{r}_p$', fontsize = 14, rotation = 0)
-ax2 = ax1.twinx()
-ax2.set_ylabel(r'$\tilde{r}_c$', fontsize = 14, rotation = 0)
-linestyle = ['-', '--', '-.' , ':']
-labels = []
-for i in range(0,len(c2)):
-    ax1.plot(t, rplot[i,:], 'royalblue', linestyle = linestyle[i])
-    ax2.plot(t,rclot[i,:], 'forestgreen', linestyle = linestyle[i])
-    plt.plot([],[], 'k', linestyle = linestyle[i], label=r'$c_2 =$' + str(c2[i]))
-plt.legend(loc = 'center left')
-plt.title('Pellet and Cloud radius as a function of time with changing parameter ' + str(r'$c_2$'))
-plt.show()"""
+    u = ((2*rpd1*rp1)/(1.0 + rp1**2))*((1.0 + r1**2))*(np.arctan(r1) - 
+       np.arctan(rc1)) + rcd1*(1.0 + r1**2)/(1.0 + rc1**2) 
 
-
-"""
-fig, ax = plt.subplots()
-ax.set_xlabel(r'$\tilde{r}$', fontsize = 14)
-ax.set_ylabel(r'$\tilde{\rho}$', fontsize = 14, rotation = 0)
-ax.xaxis.set_label_coords(0.53, -0.04)
-ax.yaxis.set_label_coords(-0.04, 0.54)
-plt.title('Ablation cloud density against radius for several times')
-tplot = np.linspace(0.0, 0.98, 50)
-plt.yscale('log')
-rp = calc_rp(tplot)
-rc = calc_rc(tplot)
-for i in range(5, len(tplot), 10):
-    r = np.linspace(rp[i], rc[i], 500)
-    den = eps*((1.0 + rp[i]**2)/ (1.0 + r[:]**2))
-    ax.plot(r,den, label = r'$\tilde{t} = $' + str(round(tplot[i], 1)))
-plt.legend()
-plt.show()"""
+    return u

@@ -14,7 +14,7 @@ Created on Fri Jan  4 15:32:45 2019
 style = 'once'
 
 import numpy as np
-
+import math as mt
 
 import stop_calc_rp_rc
 import RK4 
@@ -30,9 +30,9 @@ dt = 0.002
 t = np.arange(tlow, tupper, dt) # SETTING TIME GRID
 lt = len(t)
 lr = lt
-t_start = 40
+t_start = 10
 t_end = 500
-inc = 1000
+inc = 20
 many_start = 50
 delta_t = 10**(-6) # in units of seconds - needed for number flux calculation
 life = 0.0
@@ -44,6 +44,10 @@ r0cgs = r0*100.0 #Initial pellet size in cm for normalisation in CSDA
 rp_crit = r0/(10**3) # normalised to initial pellet radius in m
 rp = stop_calc_rp_rc.calc_rp(t) #CALCULATES PELLET RADIUS AT TIME POINTS IN NORMALISED UNITS 
 rc = stop_calc_rp_rc.calc_rc(t) #CALCULATES CLOUD RADIUS AT TIME POINTS IN NORMALISED UNITS 
+rpd = np.zeros(len(t))
+for i in range(0, len(t)):
+    rpd[i] = -0.5*(1.0/(np.sqrt(np.log(mt.cosh(1)))))*(mt.tanh(1 - t[i])/(np.sqrt(np.log(mt.cosh(1 - t[i])))))
+
 x_res = 0.01 
 n = 1
 n_r = 2.0**n
@@ -57,7 +61,7 @@ rgl = 512 # r grid lengths
 r_grid = np.linspace(0.0,rc[-1], rgl , endpoint = 'true')
 """#BERGER AND SELTZER/BETHE STOPPING POWER TERMS"""
 zovera = 0.5 #Z/A
-I = 22.3 #Mean excitation energy in eV
+I = 19.8 #Mean excitation energy in eV, could be 19.8 from the molecular gaseous term from BERGER AND SELTZER 1984
 c1= 0.153536 #Some constant which carries units of MeVcm^2/g
 solid_dens = 0.086 #Solid density of Hydrogenin g/cm^3 
 masscgs = solid_dens*r0cgs**3 #Units mass in g
@@ -79,7 +83,7 @@ phi_plas = 1.0*10**3 #plasma potential in eV
 phi_p = -2.83*phi_plas #Floating sheath potential in H2 plasma but need to look at a text book for this
 
 p_diff = 200.0 # following terms needed for setting up a "pseudo-sheath" or potential across the cloud
-pel_pot = -np.arange(0.0, 2000 + p_diff, p_diff)
+pel_pot = -np.arange(0.0, 3000 + p_diff, p_diff)
 cloud_pot = 0.0
 lp = len(pel_pot)
 p_inc = 1
@@ -100,3 +104,10 @@ bond_energy = 0.00527 #in eV
 pel_dens_numb = solid_dens*10**(-3) # in kg/cm^3
 pel_dens_numb *= 10**6
 pel_dens_numb /= m_p #pellet number density in m^-3
+
+"DIFFUSION TERMS" 
+s = 2.968 #Lennard Jones Average Collision Diameter in angstroms
+omega = 0.1 # not exact but works for now, may requre interpolation to fix
+A_con = 1.858*10**(-3) # in complicated units
+m_h2 = 2.0*10**(-3) # molar mass for H2 approximately
+m_h = 1.0*10**(-3) # molar mass of H approximately

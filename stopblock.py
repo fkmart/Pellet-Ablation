@@ -123,7 +123,7 @@ def stopblock_phi_mod(E,r, i, den,phi, savedir):
         le_mid = len(E)
         particle = 'electron'
         lr = len(r) #lr will change with time to maintain spatial resolution, must be recalculated at every time
-
+        dr = r[1] - r[0]
         def dens(x):
             if x < rp[i]:
                 dens = 0.0
@@ -144,6 +144,9 @@ def stopblock_phi_mod(E,r, i, den,phi, savedir):
             return dxde_gas 
         
         for j in range(0, le_mid):
+              print(j)
+              if j ==100:
+                  print('here')
               en = [E[j]/(RME*M_fac)] #non-dimensionalising energy for use in STOP function 
               k1,k2,k3,k4 = 0,0,0,0 #RK4 algorithm terms
               #z = np.arange(0,lr-1,1) #helps to determine r index in while loop with y counter
@@ -153,11 +156,13 @@ def stopblock_phi_mod(E,r, i, den,phi, savedir):
               x_tot = np.asarray(x)
               I_non = I/(RME*M_fac)
               energy = en[0]
+              dr = 1e-3
               while en[y] > I_non and en[y]+0.5*k1 > I_non and en[y]+0.5*k2 > I_non and en[y] + k3 >I_non and x>rp[i] and en[y] + dphi > I_non:
-                if (y <lr-2):
-                    phi1 = phi[-y -1]
-                    phi2 = phi[ - y - 2]
-                    dphi = phi2 - phi1
+                if x > rp[i]:#if (y <lr-2):
+                    #phi1 = phi[-y ]
+                    #phi2 = phi[ - y - 1]
+                    #dphi = phi2 - phi1
+                    dphi = dphi_calc.dphi_calc(x+np.abs(dr),x,r_grid, phi)
                 else:
                     dphi = 0.0
                 #energy += dphi
@@ -170,7 +175,10 @@ def stopblock_phi_mod(E,r, i, den,phi, savedir):
                 en.append(energy)
                 x_tot = np.append(x_tot,x)
                 y = y+1 # y counter increases
-                  
+                if x - np.abs(dr) < rp[i]:
+                    dr = x - rp[i]
+                else:
+                    pass
               else:
                   en = en[:] # remove last element of en #THIS IS THE POSSIBLE PROBLEM
                   x_tot = x_tot[:]
@@ -187,6 +195,7 @@ def stopblock_phi_mod_rkf(E,r_grid, i,phi, savedir):
     from gen_var import zovera, delta, I, le, eps, rp, r0cgs, solid_dens,rc
     import rkf45_CSDA as rkf 
     from gen_var import dr
+    import step_calc as sc
 
     le_mid = len(E)
 
@@ -223,6 +232,8 @@ def stopblock_phi_mod_rkf(E,r_grid, i,phi, savedir):
 
     for j in range(0, le_mid):
         print(j)
+        if j==20:
+            print('thing')
         en = [E[j]/(RME*M_fac)] #non-dimensionalising energy for use in STOP function 
         k1,k2,k3,k4,k5,k6 = 0,0,0,0,0,0 #RKF4 algorithm terms
         #z = np.arange(0,lr-1,1) #helps to determine r index in while loop with y counter
@@ -232,14 +243,16 @@ def stopblock_phi_mod_rkf(E,r_grid, i,phi, savedir):
         x = rc[i]
         x_tot = np.asarray(x)
         I_non = I/(RME*M_fac)
+        y_steps = np.zeros(5)
         dr = 1e-3
-        while en[y] > I_non and en[y]+dr*(k1*BT[1,1]) > I_non and en[y]+dr*(k1*BT[2,1] + 
-          k2*BT[2,2]) > I_non and en[y] + dr*(k1*BT[3,1] + k2*BT[3,2] + 
-          k3*BT[3,3]) >I_non and en[y] + dr*(k1*BT[4,1] + 
-          k2*BT[4,2] + k3*BT[4,3] + k4*BT[4,4]) and en[y] + dr*(k1*BT[5,1] + k2*BT[5,2] + 
-          k3*BT[5,3] + k4*BT[5,4] + k5*BT[5,5]) and x>rp[i] and en[y] + dphi > I_non:
-            
-            x, energy,dr, err, new_k = rkf.rkf(x, en[-1],dr, bethe, BT, BTS, rc[i], rp[i]) 
+        while en[y] > I_non and en[y] - y_steps[0] >I_non and en[y] - y_steps[1] > I_non and en[y] - y_steps[2] > I_non and en[y] -y_steps[3] > I_non and en[y] - y_steps[4] > I_non and x>rp[i] and en[y] + dphi > I_non:
+          #en[y]-dr*(k1*BT[1,1]) > I_non and en[y]-dr*(k1*BT[2,1] + 
+          #k2*BT[2,2]) > I_non and en[y] - dr*(k1*BT[3,1] + k2*BT[3,2] + 
+          #k3*BT[3,3]) >I_non and en[y] - dr*(k1*BT[4,1] + 
+          #k2*BT[4,2] + k3*BT[4,3] + k4*BT[4,4]) > I_non and en[y] - dr*(k1*BT[5,1] + k2*BT[5,2] + 
+          #k3*BT[5,3] + k4*BT[5,4] + k5*BT[5,5]) > I_non and x>rp[i] and en[y] + dphi > I_non:
+        
+            x, energy,dr, err, new_k = rkf.rkf(x, en[-1],dr, bethe, BT, BTS, rc[i], rp[i],I_non) 
             k1,k2,k3,k4,k5,k6 = new_k[0], new_k[1], new_k[2], new_k[3], new_k[4], new_k[5]
             dphi = dphi_calc.dphi_calc(x+np.abs(dr),x,r_grid, phi)
             tot_pot += dphi
@@ -247,7 +260,9 @@ def stopblock_phi_mod_rkf(E,r_grid, i,phi, savedir):
             en.append(energy)            #en is the accumulated energy profile   
             x_tot = np.append(x_tot,x)
             y = y+1 # y counter increases
-                  
+            k = [k1,k2,k3,k4,k5,k6]
+            for p in range(0,5):
+                y_steps[p] = sc.ys_calc(dr,k,BT,p)
         else:
               en = en[:] 
               x_tot = x_tot[:]

@@ -37,7 +37,8 @@ for i in range(0, len(a)):
 """
 def frigg_it_logic(b,c):
     z = []
-    x = b[c-8:c]
+    #x = b[c-8:c]
+    x = b[-c:]
     y = np.sort(x)
     for j in range(0,len(x)-1):
         if y[j] == y[j+1]:
