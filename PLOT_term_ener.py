@@ -11,11 +11,12 @@ for i in range(0, len(pel_pot)):
     load = np.loadtxt(load_dir + 'lin_terminal_energy_pot_' + str(pel_pot[i]) + '_test.txt')
     imp_ener = np.append(imp_ener,load[0,0])
 
+d = imp_ener + pel_pot
 fig,ax = plt.subplots() 
-ax.plot(pel_pot, imp_ener)
+ax.plot(pel_pot, imp_ener - imp_ener[0])
 plt.ylabel(r'$E_{tr}/\mathrm{eV}$', fontsize = 12, rotation = 0)
-plt.xlabel(r'$\phi_{\mathrm{pel}}$', fontsize = 12)
-ax.xaxis.set_label_coords(0.45,-0.04)
+plt.xlabel(r'$\phi_{\mathrm{pel}}$/V', fontsize = 12)
+ax.xaxis.set_label_coords(0.45,-0.08)
 ax.yaxis.set_label_coords(-0.06,0.42)
-plt.savefig('min_imp_ener.png', format = 'png', dpi = 1400)
+#plt.savefig('min_imp_ener.png', format = 'png', dpi = 1400)
 plt.show()

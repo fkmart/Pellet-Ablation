@@ -4,6 +4,7 @@ import os
 from gen_var import *
 from electron import RME as RME_e
 import dphi_calc
+from gen_var import trunc_fac
 #from numba import jit, float64
 #import stop_func
 
@@ -192,10 +193,15 @@ def stopblock_phi_mod(E,r, i, den,phi, savedir):
 
 def stopblock_phi_mod_rkf(E,r_grid, i,phi, savedir):
     from electron import RME, M_fac
-    from gen_var import zovera, delta, I, le, eps, rp, r0cgs, solid_dens,rc
+    from gen_var import zovera, delta, I, le, eps, rp, r0cgs, solid_dens,rc, style
     import rkf45_CSDA as rkf 
-    from gen_var import dr
     import step_calc as sc
+
+    if style =='many':
+        from gen_var import rp_hr as rp
+        from gen_var import rc_hr as rc
+    else:
+        pass
 
     le_mid = len(E)
 
@@ -231,9 +237,6 @@ def stopblock_phi_mod_rkf(E,r_grid, i,phi, savedir):
         return dxde_gas
 
     for j in range(0, le_mid):
-        print(j)
-        if j==20:
-            print('thing')
         en = [E[j]/(RME*M_fac)] #non-dimensionalising energy for use in STOP function 
         k1,k2,k3,k4,k5,k6 = 0,0,0,0,0,0 #RKF4 algorithm terms
         #z = np.arange(0,lr-1,1) #helps to determine r index in while loop with y counter
@@ -245,14 +248,14 @@ def stopblock_phi_mod_rkf(E,r_grid, i,phi, savedir):
         I_non = I/(RME*M_fac)
         y_steps = np.zeros(5)
         dr = 1e-3
-        while en[y] > I_non and en[y] - y_steps[0] >I_non and en[y] - y_steps[1] > I_non and en[y] - y_steps[2] > I_non and en[y] -y_steps[3] > I_non and en[y] - y_steps[4] > I_non and x>rp[i] and en[y] + dphi > I_non:
+        while en[y] > trunc_fac*I_non and en[y] - y_steps[0] >trunc_fac*I_non and en[y] -y_steps[1] > trunc_fac*I_non and en[y] - y_steps[2] > trunc_fac*I_non and en[y] - y_steps[3] > trunc_fac*I_non and en[y] - y_steps[4] > trunc_fac*I_non and x>rp[i] and en[y] + dphi > trunc_fac*I_non:
           #en[y]-dr*(k1*BT[1,1]) > I_non and en[y]-dr*(k1*BT[2,1] + 
           #k2*BT[2,2]) > I_non and en[y] - dr*(k1*BT[3,1] + k2*BT[3,2] + 
           #k3*BT[3,3]) >I_non and en[y] - dr*(k1*BT[4,1] + 
           #k2*BT[4,2] + k3*BT[4,3] + k4*BT[4,4]) > I_non and en[y] - dr*(k1*BT[5,1] + k2*BT[5,2] + 
           #k3*BT[5,3] + k4*BT[5,4] + k5*BT[5,5]) > I_non and x>rp[i] and en[y] + dphi > I_non:
         
-            x, energy,dr, err, new_k = rkf.rkf(x, en[-1],dr, bethe, BT, BTS, rc[i], rp[i],I_non) 
+            x, energy,dr, err, new_k = rkf.rkf(x, en[-1],dr, bethe, BT, BTS, rc[i], rp[i],I_non)
             k1,k2,k3,k4,k5,k6 = new_k[0], new_k[1], new_k[2], new_k[3], new_k[4], new_k[5]
             dphi = dphi_calc.dphi_calc(x+np.abs(dr),x,r_grid, phi)
             tot_pot += dphi

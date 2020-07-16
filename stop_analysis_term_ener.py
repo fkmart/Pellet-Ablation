@@ -11,16 +11,19 @@ Created on Tue Jan 15 12:45:54 2019
 import numpy as np 
 import stop_analysis_stop_point
 import os
-def term_energy(particle, r,t, le, direc):
+def term_energy(particle,t, le, direc):
     from electron import RME, le
-    from gen_var import I, rp
+    from gen_var import I, rp, style 
+    if style == 'many':
+        from gen_var import rp_hr as rp
+    else:
+        pass
     arrsave1 = []
     ind= []
     for j in range(0,le -1):
         
         ener_arr = np.load(os.path.join(direc,'EvsR_' + particle +'_E0'+str(j)+'.npy'))
        
-        lr = len(r) 
         """
         ind.append(len(ener_arr))
 

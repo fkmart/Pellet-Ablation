@@ -4,7 +4,7 @@ is then used to determine the self-field according to Poisson's equation by usin
 energy on the pellet surface then determines the """
 import numpy as np
 from gen_var import rp, rc, t_start,lt, lr, dr, lp, pel_pot, cloud_pot, style,r0, dens_plas,e,epsilon0
-from gen_var import many_start, t_end, inc, p_inc, rp_crit, delta_t, lp , sig, r, n_r, r_grid, rgl
+from gen_var import many_start, t_end, inc, p_inc, rp_crit, delta_t, lp , sig, r_grid, rgl
 import os 
 import stopblock #function to bethe stop electrons
 import MB_calc # function to determine EEDF
@@ -22,6 +22,7 @@ import gauss_centre_finder as gcf
 from sig_calc import sig_calc
 import grid_pusher as gp
 import elec_transport_push 
+import norming_density as nd
 
 particle = 'electron' # clarifying particle type
 life = 0.0
@@ -43,9 +44,9 @@ if (i > lt-1):
 else:
     pass
 
-neut_dens = np.zeros(n_r) # neutral density array of equal length, only some values will be non-zero
+#neut_dens = np.zeros(n_r) # neutral density array of equal length, only some values will be non-zero
 push_e_dens = np.zeros(rgl)
-lr = len(r)
+#lr = len(r)
 
 #Important to print the style being used here so you don't totally miss it
 print('The scenario tested here is: ' + str(style))
@@ -75,7 +76,7 @@ acc_elec_dens = np.zeros(rgl) # initial electron density - zero everywhere
 pot /= RME*M_fac # normalise electric potential for stopblock calc
 
 p = 0
-for i in range(10, 30, inc):
+for i in range(t_start, t_end, inc):
     print (i)
     save_raw_t = os.path.join(savedir_raw, 't_' + str(i)) + os.sep
     save_an_t = os.path.join(savedir_an, 't_' + str(i)) + os.sep
@@ -83,23 +84,25 @@ for i in range(10, 30, inc):
         os.mkdir(save_raw_t)
     if not os.path.exists(save_an_t):
         os.mkdir(save_an_t)
-    low = next(p[0] for p in enumerate(r) if p[1] > rp[i]) # finds first index with r > r_p
-    up = next(p[0] for p in enumerate(r) if p[1] > rc[i]) # finds first index with r > r_c
-    r_internal = r[low:up] 
-    neut_dens[low:up] = 0.01*((1.0 + rp[i]**2)/(1.0 + r[low:up]**2))
+    #low = next(p[0] for p in enumerate(r) if p[1] > rp[i]) # finds first index with r > r_p
+    #up = next(p[0] for p in enumerate(r) if p[1] > rc[i]) # finds first index with r > r_c
+    #r_internal = r[low:up] 
+    #neut_dens[low:up] = 0.01*((1.0 + rp[i]**2)/(1.0 + r[low:up]**2))
     r_grid = np.linspace(rp[i], rc[i], num = 512, endpoint = 'true')
     pot = np.zeros(len(r_grid))
     #pot[low:up] = np.linspace(-2.8e3,0.0,num = up-low, endpoint = 'true')
     #pot = np.linspace(-2.8e3,0.0, num = len(r_grid), endpoint = 'true')
+    pot = np.zeros(len(r_grid))
     pot = pot/(RME*M_fac)
-    stopblock.stopblock_phi_mod(e_mid, r,i, neut_dens, pot,save_raw_t) # change this line for new mods
+    stopblock.stopblock_phi_mod_rkf(e_mid, r_grid,i, pot,save_raw_t) # change this line for new mods
     #stopblock.stopblock_phi_mod_rkf(e_mid, r_grid, i, pot, save_raw_t)
-    term_en, ind = baf.stop_analysis_term_ener.term_energy(particle, r, i, le, save_raw_t)
-    stop_point = baf.stop_analysis_stop_point.stop_point(term_en,ind, particle, r,i,len(e_mid), save_raw_t)
+    term_en, ind = baf.stop_analysis_term_ener.term_energy(particle, i, le, save_raw_t)
+    stop_point = baf.stop_analysis_stop_point.stop_point(term_en,ind, particle,i,len(e_mid), save_raw_t)
     #Now determine what index the particles reach the pellet
     ind = np.where(stop_point[:,1] < rp[i])
     ind = ind[0]
-    faux_density,real_density = baf.stop_analysis_particle_density.particle_density(stop_point,i, len(e_mid), e_bins, particle,p,r)
+    faux_density = baf.stop_analysis_particle_density.particle_density(stop_point,i, len(e_mid), e_bins, particle,p)
+    norm_density = nd.norm(i,faux_density, r_grid)
     push_e_dens = gp.pusher(faux_density, r_grid)
     ret_flux_frac, ener_flux, lifetime = baf.stop_analysis_retarded_flux.retarded_flux(i,save_an_t, term_en)
 

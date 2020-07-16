@@ -14,8 +14,8 @@ l = 100
 x = np.linspace(0.0,1.0, l)
 
 #dens = np.sin(3.0*np.pi*x)
-#dens = np.ones(l)
-dens = -3.0*x**2 + 0.5*x - 1.0
+dens = np.ones(l)
+#dens = -3.0*x**2 + 0.5*x - 1.0
 
 phi = np.zeros(l)
 phi[0] = 2.0
@@ -26,8 +26,8 @@ phi = iterative_sol.SOR(A,phi, dens, x)
 #analytical check
 #an = -(1.0/(9.0*np.pi**2))*np.sin(3.0*np.pi*x) - x
 #an = 0.5*x**2 - 0.5*x + 1.0
-#an = 0.5*x**2 + 2.5*x + 2.0
-an = -0.25*x**4 + (1.0/12.0)*x**3 - 0.5*x**2 + (10.0/6.0)*x + 2.0
+an = 0.5*x**2 + 2.5*x + 2.0
+#an = -0.25*x**4 + (1.0/12.0)*x**3 - 0.5*x**2 + (10.0/6.0)*x + 2.0
 #a test on the solver is to differentiate the result 
 
 check_the_first = np.dot(A,phi)
@@ -50,5 +50,5 @@ lns = l1 + l2 + l3
 labels = [l.get_label() for l in lns]
 
 plt.legend(lns, labels, ncol = 1, loc = 'lower center')
-plt.savefig(savedir + title+'.png', format = 'png', dpi = 1200)
+#plt.savefig(savedir + title+'.png', format = 'png', dpi = 1200)
 plt.show()

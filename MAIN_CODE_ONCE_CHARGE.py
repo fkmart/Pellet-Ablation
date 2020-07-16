@@ -4,7 +4,7 @@ is then used to determine the self-field according to Poisson's equation by usin
 energy on the pellet surface then determines the """
 import numpy as np
 from gen_var import rp, rc, t_start,lt, lr, dr, lp, pel_pot, cloud_pot, style,r0, dens_plas,e,epsilon0
-from gen_var import many_start, t_end, inc, p_inc, rp_crit, delta_t, lp , sig, r, n_r, r_grid, rgl
+from gen_var import many_start, t_end, inc, p_inc, rp_crit, delta_t, sig, r_grid, rgl
 import os 
 import stopblock #function to bethe stop electrons
 import MB_calc # function to determine EEDF
@@ -32,7 +32,7 @@ MB = MB_calc.MB(ener, e_bar)
 
 #############################################
 
-i = t_start #index of time-array
+i = 50 #index of time-array
 
 #############################################
 
@@ -43,15 +43,15 @@ if (i > lt-1):
 else:
     pass
 
-neut_dens = np.zeros(n_r) # neutral density array of equal length, only some values will be non-zero
+neut_dens = np.zeros(rgl) # neutral density array of equal length, only some values will be non-zero
 push_e_dens = np.zeros(rgl)
-lr = len(r)
+#lr = len(r)
 
 #Important to print the style being used here so you don't totally miss it
 print('The scenario tested here is: ' + str(style))
 
 
-pot = np.zeros(n_r)
+pot = np.zeros(rgl)
 savedir_raw = os.path.join(os.getcwd(), 'one_iteration_phic', 'raw_outputs') + os.sep
 savedir_an = os.path.join(os.getcwd(), 'one_iteration_phic', 'analysed_outputs') + os.sep
 
@@ -78,14 +78,16 @@ if not os.path.exists(save_raw_t):
     os.mkdir(save_raw_t)
 if not os.path.exists(save_an_t):
     os.mkdir(save_an_t)
-low = next(p[0] for p in enumerate(r) if p[1] > rp[i])
-up = next(p[0] for p in enumerate(r) if p[1] > rc[i])
-r_internal = r[low:up]
-mid = int((up-low)/2)
-mid_arr = np.arange(mid,up, 500) 
+    
+r_internal = np.linspace(rp[i], rc[i], num = rgl, endpoint = 'true')
+#low = next(p[0] for p in enumerate(r_grid) if p[1] > rp[i])
+#up = next(p[0] for p in enumerate(r_grid) if p[1] > rc[i])
+#r_internal = r_grid[low:up]
+#mid = int((up-low)/2)
+#mid_arr = np.arange(mid,up, 500) 
 p = 10
-neut_dens[low:up] = 0.01*((1.0 + rp[i]**2)/(1.0 + r[low:up]**2))
-for p in range(0, len(pel_pot)):
+#neut_dens[low:up] = 0.01*((1.0 + rp[i]**2)/(1.0 + r_grid[low:up]**2))
+for p in range(0, 1):
     print(p)
     #for m in mid_arr:
     #Directory Stuff
@@ -110,15 +112,15 @@ for p in range(0, len(pel_pot)):
                 os.mkdir(path1a)
             os.mkdir(path2a)
         os.mkdir(path3a)
-    pot = np.linspace(0, pel_pot[p], len(r_internal))
+    pot = np.linspace( pel_pot[p],0.0, len(r_internal))
     #pot[low:up] = gauss_test_pot.gauss_func(pel_pot[5],sig[a],r_internal[m],r_internal) # using gaussian test function
     pot[:] /= RME*M_fac
     #stopblock.stopblock_phi(e_mid, r,i, neut_dens , pot, path3r)
     stopblock.stopblock_phi_mod_rkf(e_mid, r_internal, i, pot, save_raw_t)
-    term_en, ind = baf.stop_analysis_term_ener.term_energy(particle, r, i, le, save_raw_t)
-    stop_point = baf.stop_analysis_stop_point.stop_point(term_en,ind, particle, r,i,len(e_mid), save_raw_t)
-    faux_density,real_density = baf.stop_analysis_particle_density.particle_density(stop_point,i, len(e_mid), e_bins, particle,save_raw_t,r)
-    ret_flux_frac, ener_flux, lifetime = baf.stop_analysis_retarded_flux.retarded_flux(i,save_an_t, term_en)
+    term_en, ind = baf.stop_analysis_term_ener.term_energy(particle, i, le, save_raw_t)
+    stop_point = baf.stop_analysis_stop_point.stop_point(term_en,ind, particle,i,len(e_mid), save_raw_t)
+    faux_density = baf.stop_analysis_particle_density.particle_density(stop_point,i, len(e_mid), e_bins, particle,save_raw_t)
+    ret_flux_frac, ener_flux, lifetime = baf.stop_analysis_retarded_flux.retarded_flux(i, term_en)
 
     #Printing essential information as diagnostic
 
@@ -134,7 +136,7 @@ for p in range(0, len(pel_pot)):
     np.savetxt(os.path.join(save_an_t, 'lin_terminal_energy_pot_' + str(pel_pot[p]) +'_test.txt'), term_en)
     np.savetxt(os.path.join(save_an_t, 'lin_stop_point_pot_' + str(pel_pot[p])+'_test.txt'), stop_point)
     np.savetxt(os.path.join(save_an_t, 'lin_density_pot_'+str(pel_pot[p]) +'_test_mid.txt'), faux_density)
-    np.savetxt(os.path.join(save_an_t, 'lin_real_density_pot_' + str(pel_pot[p]) +'_test.txt'), real_density)
+    #np.savetxt(os.path.join(save_an_t, 'lin_real_density_pot_' + str(pel_pot[p]) +'_test.txt'), real_density)
 
 
 "Saving compilation of Bethe calculations with varying potentials"

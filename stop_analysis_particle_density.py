@@ -11,7 +11,7 @@ import os
 from gen_var import *
 import stop_analysis_norming_elec_density 
 
-def particle_density(arrsave2, t, le, ebins,particle,mydir,r):
+def particle_density(arrsave2, t, le, ebins,particle,mydir):
     e_dens = 0.0
     e_depo = []
     #posit = []
@@ -43,5 +43,5 @@ def particle_density(arrsave2, t, le, ebins,particle,mydir,r):
     a1 = arrsave3[:,0]
     a2 = arrsave3[:,1]
     #arrsave4 = stop_analysis_norming_elec_density.renorm_dens(a1[:], a2[:],ebins, arrsave2,t,r)
-    return arrsave3, arrsave4
+    return arrsave3 # , arrsave4
     

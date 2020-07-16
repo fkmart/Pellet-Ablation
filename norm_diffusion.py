@@ -40,21 +40,22 @@ x = np.linspace(1.0, 4.0, num = l, endpoint = 'true')
 mid = 2.5
 #x = np.linspace(-2.0, 2.0,num = l, endpoint = 'true')
 n0 = np.zeros(l)
-n0[105:145] = 1.00
+n0[105:145] = 1.00* np.linspace(1.0,2.0, num = 145-105, endpoint = 'true')
 
 D = D_real
 n = n0
-count = 0
+count = 1
 print('Diffusion coefficient in real units is ' + str(D_real) +  'cm^2/s')
 fig, ax = plt.subplots()
-ax.plot(x,n0, label = 'Initial')
+ax.plot(x,n0, label = r'$\tilde{\rho}_0$')
 plt.xlabel(r'$\tilde{x}$', fontsize = 12)
 ax.xaxis.set_label_coords(0.45,-0.04)
 plt.ylabel(r'$\tilde{n}$', rotation = 0, fontsize = 12)
-ax.yaxis.set_label_coords(-0.06, 0.45)
-t = 0.00002
+ax.yaxis.set_label_coords(-0.06, 0.40)
+t = 0.000004
 
-while count < 3:
+ax.set_yticks(np.arange(0.00,2.50, 0.5))
+while count < 6:
     B = romb.romberg_samp(n,x)
     print('Constant equals ' + str(B))
     Z = (x - mid)/(np.sqrt(t*D*4.0))
@@ -64,11 +65,11 @@ while count < 3:
     print('New integral equals ' + str(j))
     print('Fixed integral equals ' + str(romb.romberg_samp(B*n_diff/j,x)))
     n_diff *= (B/j)
-    ax.plot(x,n_diff, label = count)
+    ax.plot(x,n_diff, label = r'$\Delta \tilde{t} = $' + str(count))
     count +=1
     t += t
-    n = n_diff + n0
+    #n = n_diff + n0
     
 plt.legend() 
-plt.savefig('iterative_diff_solution.png', format = 'png', dpi = 1400)
+plt.savefig('diff_over_t.png', format = 'png', dpi = 1400)
 plt.show()

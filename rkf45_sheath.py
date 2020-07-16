@@ -12,8 +12,8 @@ def rkf(x,y,h,func,xr,xl):
     N = 100
     #if x+h > xr:
     #    h = xr-x
-    if x - h < xr:
-        h = -(np.abs(x - xr ))
+    if x + h > xr:
+        h = (np.abs(x - xr ))
     #butcher-tableau 
     BT = np.zeros((6,6))
     BT[1,:] = [0.25,0.25,0.0, 0.0, 0.0, 0.0]
@@ -30,7 +30,7 @@ def rkf(x,y,h,func,xr,xl):
 
     #calculate the k's 
     for i in range(N):
-        h = -np.abs(h)
+        h = np.abs(h)
         k1 = func(x,y)
         k2 = func(x + BT[1,0]*h, y + h*(k1*BT[1,1]))
         k3 = func(x + BT[2,0]*h, y + h*(k1*BT[2,1] + k2*BT[2,2]))
@@ -50,7 +50,7 @@ def rkf(x,y,h,func,xr,xl):
                 # if error small, enlarge h, but match final simulation time
             h = min(2.*np.abs(h),hmax)            
             if x + h < xr:
-                h = -np.abs(xr - x)
+                h = np.abs(xr - x)
                 break
         elif err > err_max:
                 # if error big, reduce h

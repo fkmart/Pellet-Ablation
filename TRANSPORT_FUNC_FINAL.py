@@ -47,18 +47,20 @@ dens_final[ind_low_trans:] +=  rho_trans_interp
 print('before transport : ' + str(romb.romberg_samp(dens1,r1)))
 print('after transport : ' + str(romb.romberg_samp(dens_final, r)))"""
 
-def transport(t1,shift,rgrid, density):
-    from gen_var import rp,rc 
+def transport(t1,shift,r_grid, density):
+    from gen_var import rp_hr as rp
+    from gen_var import rc_hr as rc
+    from gen_var import t_hr, delta_t, dt_hr
     t2 = t1 + shift
     rp1,rc1 = rp[t1], rc[t1]
     rp2,rc2 = rp[t2], rc[t2]
-    
-    u = u_sol(rgrid, t1)
+
+    u = u_sol(r_grid, t1)
     f_rem = (1.0 + rp2**2)/(1.0 + rp1**2)
-    f_tran = 1.0 - f_rem 
+    f_trans = 1.0 - f_rem 
 
-    r_trans = r + u*shift*(t[1] - t[0])
+    r_trans = r_grid + u*shift*dt_hr
 
-    dens_rem = np.asarray([density*f_rem,r])
+    dens_rem = np.asarray([density*f_rem,r_grid])
     dens_trans = np.asarray([density*f_trans, r_trans])
     return dens_rem, dens_trans

@@ -10,7 +10,7 @@ KE_top = 20000
 
 ener_res = 50
 e_dist = np.arange(KE_bot, KE_top, ener_res)
-e_bar = 10.0**3
+e_bar = 1.0*10.0**3
 le = len(e_dist)
 
 def dist_calc(e_dist,ener_res, e_bar):

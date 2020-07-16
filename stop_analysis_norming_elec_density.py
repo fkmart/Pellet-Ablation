@@ -2,6 +2,7 @@ import numpy as np
 import scipy.integrate as spint 
 from gen_var import dr,pel_pot, rp, rc
 import scipy.interpolate as spit
+import romberg as romb
 import os 
 
 """This function does not normalise the density that has accummulated from all the charge

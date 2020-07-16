@@ -15,26 +15,34 @@ style = 'once'
 
 import numpy as np
 import math as mt
-
+import os
 import stop_calc_rp_rc
-import RK4 
+#import RK4 
+from electron import RME, M_fac, e_bar
+import pellet_sheath as ps
+import rc_solve
+import find_nearest as fn
+import final_sheath_func as fsf
 
 
+direc = os.getcwd()
 """#TEMPORAL TERMS"""
-tf = 1*10**(-3) #Pellet LIfetime - 1ms
-tlow = 0.0
-
+tf = 1*10**(-3) #Pellet Lifetime - 1ms
+tlow = 0.00
+t_low_hr = 1e-1
 tupper = 1.0
-
+t_upper_hr = 0.5
 dt = 0.002
+dt_hr = 1e-5
 t = np.arange(tlow, tupper, dt) # SETTING TIME GRID
+t_hr = np.arange(t_low_hr,t_upper_hr,dt_hr)
 lt = len(t)
 lr = lt
-t_start = 10
+t_start = 1
 t_end = 500
-inc = 20
-many_start = 50
-delta_t = 10**(-6) # in units of seconds - needed for number flux calculation
+inc = 1
+many_start = 20
+delta_t = 5*10**(-3) # normalised quantity - needed for number flux calculation
 life = 0.0
 
 """"#SPATIAL TERMS"""
@@ -43,22 +51,25 @@ r0 = 10**(-3) #Initial pellet radius in m
 r0cgs = r0*100.0 #Initial pellet size in cm for normalisation in CSDA 
 rp_crit = r0/(10**3) # normalised to initial pellet radius in m
 rp = stop_calc_rp_rc.calc_rp(t) #CALCULATES PELLET RADIUS AT TIME POINTS IN NORMALISED UNITS 
+rp_hr = stop_calc_rp_rc.calc_rp(t_hr)
 rc = stop_calc_rp_rc.calc_rc(t) #CALCULATES CLOUD RADIUS AT TIME POINTS IN NORMALISED UNITS 
+#rc_hr = stop_calc_rp_rc.calc_rc(t_hr)
+rc_hr = rc_solve.rc_sol(t_hr)
 rpd = np.zeros(len(t))
+rpd_hr = np.zeros(len(t_hr))
 for i in range(0, len(t)):
     rpd[i] = -0.5*(1.0/(np.sqrt(np.log(mt.cosh(1)))))*(mt.tanh(1 - t[i])/(np.sqrt(np.log(mt.cosh(1 - t[i])))))
 
-x_res = 0.01 
-n = 1
-n_r = 2.0**n
-while (rc[-1]/(2.0**(n)) > x_res) : 
-    n += 1
+for i in range(0, len(t_hr)):
+    rpd_hr[i] = -0.5*(1.0/(np.sqrt(np.log(mt.cosh(1)))))*(mt.tanh(1 - t_hr[i])/(np.sqrt(np.log(mt.cosh(1 - t_hr[i])))))
 
-n_r = 2**n + 1
 
-r = np.linspace(0, rc[-1], n_r) # romberg grid defined
-rgl = 512 # r grid lengths
-r_grid = np.linspace(0.0,rc[-1], rgl , endpoint = 'true')
+
+
+dr = 5.0*10**-3 #Spatial resolution 
+#r_grid = np.linspace(0.0,rc[-1], rgl , endpoint = 'true')
+r_grid = np.arange(rp_hr[-1], rc_hr[-1], dr)
+rgl = len(r_grid) # r grid lengths
 """#BERGER AND SELTZER/BETHE STOPPING POWER TERMS"""
 zovera = 0.5 #Z/A
 I = 19.8 #Mean excitation energy in eV, could be 19.8 from the molecular gaseous term from BERGER AND SELTZER 1984
@@ -69,18 +80,22 @@ delta = 0.0 # DEnsity correction, zero for H target
 
 r_start = np.asarray([0.0])
 eps = 0.01 #DEnsity contrast term - dimensionless
+trunc_fac = np.sqrt(8.0/np.exp(1))
 
 """NUMERICAL QUANTITIES"""
 
-dr = 1.0*10**-2 #Spatial resolution 
+
 le = 500 #Number of energy points
 
+m_e = 9.10938356*10**(-31) # in kg
+m_p = 1.6726219*10**(-27) # in kg
 """ELECTROSTATIC TERMS"""
 
 e = 1.6022*10**(-19) # elementary charge in Coulombs
 epsilon0 = 8.8542*10**(-12) # permittivity of free space in F/m
-phi_plas = 1.0*10**3 #plasma potential in eV
-phi_p = -2.83*phi_plas #Floating sheath potential in H2 plasma but need to look at a text book for this
+phi_plas = 1.0*10**3 #plasma potential in V
+phi_plas = e_bar
+phi_p = -phi_plas*np.log(np.sqrt(2.0*m_p/(2.0*np.pi*m_e))) #Floating sheath potential in H2 plasma but need to look at a text book for this
 
 p_diff = 200.0 # following terms needed for setting up a "pseudo-sheath" or potential across the cloud
 pel_pot = -np.arange(0.0, 3000 + p_diff, p_diff)
@@ -90,10 +105,17 @@ p_inc = 1
 sig = [0.5,0.6,0.7,0.8,0.9,1.0,1.25]
 #sig = np.arange(0.40,1.50,0.05)
 
+"SHEATH SOLUTION"
+#s,sheath_pot, sheath_x = ps.sheath_solver()
+s, sheath_pot, sheath_x = fsf.sheath()
+s = np.abs(s)
+s /=r0
+d = rc_hr - rp_hr
+many_start = fn.find_nearest(rc_hr - rp_hr,  s)
+#many_end = fn.find_nearest(rc_hr - rp_hr,3.0)
+
 """BACKGROUND PLASMA TERMS""" 
-phi_plas = 10**3 # in Volts
-m_e = 9.10938356*10**(-31) # in kg
-m_p = 1.6726219*10**(-27) # in kg
+phi_plas = np.copy(e_bar) # in Volts
 dens_plas = 10**19 # in m^-3
 vrms_e = np.sqrt(2.0*e*phi_plas/m_e) #in ms^-1
 F0 = 0.25*dens_plas*vrms_e # flux of particles per square metre per second
@@ -106,8 +128,22 @@ pel_dens_numb *= 10**6
 pel_dens_numb /= m_p #pellet number density in m^-3
 
 "DIFFUSION TERMS" 
-s = 2.968 #Lennard Jones Average Collision Diameter in angstroms
+#s = 2.968 #Lennard Jones Average Collision Diameter in angstroms
 omega = 0.1 # not exact but works for now, may requre interpolation to fix
 A_con = 1.858*10**(-3) # in complicated units
 m_h2 = 2.0*10**(-3) # molar mass for H2 approximately
 m_h = 1.0*10**(-3) # molar mass of H approximately
+r_rate = np.loadtxt(direc + os.sep + 'h2_ion_rate.txt')
+
+"SCALED QUANTITIES FOR ABLATION" 
+
+no_flux_sca = 0.25*dens_plas*vrms_e 
+e_flux_sca = no_flux_sca*RME*M_fac 
+ener_ablat_sca = e_flux_sca*r0**2 * tf *delta_t
+N_ablat_sca = ener_ablat_sca/bond_energy
+N_0_sca = (4.0/3.0)*np.pi*r0**3 * pel_dens_numb
+
+
+"scaling test"
+Np_now = rp[20]**3 *(N_0_sca/N_ablat_sca)
+Np = Np_now * N_ablat_sca

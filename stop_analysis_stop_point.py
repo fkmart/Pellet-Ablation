@@ -9,8 +9,7 @@ Created on Tue Jan 15 14:35:52 2019
 import numpy as np
 from gen_var import *
 import os
-def stop_point(arr,ind,particle, r, i, le_mid, direc):
-    lr = len(r)
+def stop_point(arr,ind,particle, i, le_mid, direc):
     arrsave2 = []
     for j in range(0,le_mid):
         ener_arr = np.load(os.path.join(direc,'EvsR_' + particle +'_E0'+str(j)+'.npy'))
