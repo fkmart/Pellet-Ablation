@@ -22,6 +22,7 @@ import gauss_centre_finder as gcf
 from sig_calc import sig_calc
 import grid_pusher as gp
 import elec_transport_push 
+import norming_density as nd
 
 particle = 'electron' # clarifying particle type
 life = 0.0
@@ -43,10 +44,12 @@ if (i > lt-1):
 else:
     pass
 
+rgl = 1000
 neut_dens = np.zeros(rgl) # neutral density array of equal length, only some values will be non-zero
 push_e_dens = np.zeros(rgl)
 #lr = len(r)
 
+style = 'one_charge'
 #Important to print the style being used here so you don't totally miss it
 print('The scenario tested here is: ' + str(style))
 
@@ -87,7 +90,7 @@ r_internal = np.linspace(rp[i], rc[i], num = rgl, endpoint = 'true')
 #mid_arr = np.arange(mid,up, 500) 
 p = 10
 #neut_dens[low:up] = 0.01*((1.0 + rp[i]**2)/(1.0 + r_grid[low:up]**2))
-for p in range(0, 1):
+for p in range(0, len(pel_pot),5):
     print(p)
     #for m in mid_arr:
     #Directory Stuff
@@ -120,6 +123,8 @@ for p in range(0, 1):
     term_en, ind = baf.stop_analysis_term_ener.term_energy(particle, i, le, save_raw_t)
     stop_point = baf.stop_analysis_stop_point.stop_point(term_en,ind, particle,i,len(e_mid), save_raw_t)
     faux_density = baf.stop_analysis_particle_density.particle_density(stop_point,i, len(e_mid), e_bins, particle,save_raw_t)
+    norm_dens = nd.norm(i,faux_density,r_internal)
+    norm_dens = np.flip(norm_dens, axis = 0)
     ret_flux_frac, ener_flux, lifetime = baf.stop_analysis_retarded_flux.retarded_flux(i, term_en)
 
     #Printing essential information as diagnostic
@@ -136,6 +141,7 @@ for p in range(0, 1):
     np.savetxt(os.path.join(save_an_t, 'lin_terminal_energy_pot_' + str(pel_pot[p]) +'_test.txt'), term_en)
     np.savetxt(os.path.join(save_an_t, 'lin_stop_point_pot_' + str(pel_pot[p])+'_test.txt'), stop_point)
     np.savetxt(os.path.join(save_an_t, 'lin_density_pot_'+str(pel_pot[p]) +'_test_mid.txt'), faux_density)
+    np.savetxt(os.path.join(save_an_t, 'lin_norm_dens_pot_' +str(pel_pot[p]) + '.txt'), np.asarray([r_internal,norm_dens]))
     #np.savetxt(os.path.join(save_an_t, 'lin_real_density_pot_' + str(pel_pot[p]) +'_test.txt'), real_density)
 
 

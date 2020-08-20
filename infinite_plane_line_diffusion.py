@@ -35,7 +35,7 @@ print('Constant is ' + str(B))
 c = 1
 while t < 5*10**(-3):
     
-    Z = x/(np.sqrt(t*D*4.0))
+    Z = (x)/(np.sqrt(t*D*4.0))
     f = (np.exp(-Z**2))/(np.sqrt(np.pi*D*t))
     n_diff = scisig.convolve(n, f, mode = 'same')
     j = ro.romberg_samp(n_diff,x)
@@ -46,5 +46,5 @@ while t < 5*10**(-3):
     print('Check is ' + str(check) + ' at time ' + str(t -5*10**(-5)))
     c +=1
 plt.legend()
-plt.savefig('diff_over_t.png', format = 'png', dpi = 1400)
+#plt.savefig('diff_over_t.png', format = 'png', dpi = 1400)
 plt.show()

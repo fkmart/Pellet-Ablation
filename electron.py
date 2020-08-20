@@ -4,11 +4,11 @@ import scipy.integrate as spit
 RME = 0.5110034 #in MeV
 M_fac = 10.0**6
 KE_bot = 100
-KE_top = 20000
+KE_top = 15000
 
 #Distributin functino calculation
 
-ener_res = 50
+ener_res = 500
 e_dist = np.arange(KE_bot, KE_top, ener_res)
 e_bar = 1.0*10.0**3
 le = len(e_dist)
@@ -40,6 +40,7 @@ def dist_calc(e_dist,ener_res, e_bar):
     #diff_norm = 1.0 - e_binscheck
     #diff_reg = integ - e_binsregcheck
     #bin_diff = e_bins - e_bins_reg
+    e_bins /= e_binscheck
     return e_mid, e_bins, MB_norm
         
     #SHOULD MAKE SURE THE STOPPING CODE ACTS ON THE MID-POINT ENERGIES FOR

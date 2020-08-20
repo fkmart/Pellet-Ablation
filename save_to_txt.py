@@ -12,3 +12,4 @@ numbers = ['5.0','50.0','10.0']
 
 savefile = [text,numbers]
 np.savetxt('savetest.txt',savefile, delimiter = ',', fmt = '%s')
+print('Perhaps this worked')

@@ -5,12 +5,12 @@ from gen_var import t_start, t_end, inc
 
 direc = os.getcwd() 
 
-t = np.arange(float(t_start),float(t_end), 20.0)
+t = np.arange(5.0,500.0, 5.0)
 t[:] = t[:]/t_end
 ener = []
-for i in range(t_start, t_end, 20):
+for i in range(5, 500, 5):
     load_dir = os.path.join(direc, 'one_iteration', 'analysed_outputs','t_' + str(i)) + os.sep
-    load = np.loadtxt(load_dir + os.sep + 'terminal_energy_neutral.txt')
+    load = np.loadtxt(load_dir + os.sep + 'terminal_energy.txt')
     ener = np.append(ener, load[0,0])
 
 fig, ax = plt.subplots() 

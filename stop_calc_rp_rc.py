@@ -105,13 +105,26 @@ def rcdot(t,rc, rp): #loop over the time array as we want to flow speed over the
     return out, r_pl
 
 def rdot(t,rc,rp):
-    lt = len(t)
-    r_pl = np.zeros((lt,500))
+    from gen_var import t_hr
+    
+    #lt = len(t)
+    """r_pl = np.zeros((lt,500))
     rcd = np.zeros(lt)
     out = np.zeros((lt,500))
     eps = 0.01
-    densrc = np.zeros(lt)
-    for i in range(0, lt):
+    densrc = np.zeros(lt)"""
+    def func_rc(t, rc):
+         
+         drcdt = ((eps - 1.0)/eps)*((((k2*np.log(np.cosh(k1*(1 - t)))/(np.log(np.cosh(k1))))**(0.5))**2)/rc**2)*((1.0 
+         
+         + rc**2)/(1.0 +((k2*np.log(np.cosh(k1*(1 - t)))/(np.log(np.cosh(k1))))**(0.5))**2))*(-0.5*k2*k1)*((np.log(np.cosh(k1)))**(-0.5))*(((np.log(np.cosh(k1*(1.0 
+         
+         - t)))))**(-0.5))*(np.tanh(k1*(1-t))) - 2.0*((k2*(np.log(np.cosh(k1*(1.0 - t)))/(np.log(np.cosh(k1))))**(0.5))*-0.5*k2*k1*((np.log(np.cosh(k1)))**(-0.5))*(((np.log(np.cosh(k1*(1.0 
+         - t)))))**(-0.5))*(np.tanh(k1*(1-t)))/rc**2)*((1.0 + rc**2)/(1.0 +k2*(np.log(np.cosh(k1*(1.0 - t)))/(np.log(np.cosh(k1))))**(1.0)))*(rc - 
+         (np.log(np.cosh(k1*(1 - t)))/(np.log(np.cosh(k1))))**(0.5) + np.arctan((((np.log(np.cosh(k1*(1.0 
+         - t)))/(np.log(np.cosh(k1))))**(0.5) -rc)/(1.0 +rc*(np.log(np.cosh(k1*(1 - t)))/(np.log(np.cosh(k1))))**(0.5)))))
+         return drcdt
+    """for i in range(0, lt):
         def func_rc(t, rc):
          
          drcdt = ((eps - 1.0)/eps)*((((k2*np.log(np.cosh(k1*(1 - t)))/(np.log(np.cosh(k1))))**(0.5))**2)/rc**2)*((1.0 
@@ -123,7 +136,8 @@ def rdot(t,rc,rp):
          (np.log(np.cosh(k1*(1 - t)))/(np.log(np.cosh(k1))))**(0.5) + np.arctan((((np.log(np.cosh(k1*(1.0 
          - t)))/(np.log(np.cosh(k1))))**(0.5) -rc)/(1.0 +rc*(np.log(np.cosh(k1*(1 - t)))/(np.log(np.cosh(k1))))**(0.5)))))
          return drcdt
-        rcd[i] = func_rc(t[i], rc[i])
+        rcd[i] = func_rc(t[i], rc[i])"""
+    rcd_out = func_rc(t_hr[t],rc[t])
     """ densrc[i] = eps*((1.0 + rp[i]**2)/(1.0 + rc[i]**2))
     for i in range(0, lt-1):
         av = (rcd[i]*densrc[i] + rcd[i+1]*densrc[i+1])*0.5
@@ -132,7 +146,7 @@ def rdot(t,rc,rp):
         out[i,:] = av/dens[:]
         r_pl[i,:] = r[:]
     print(rcd[990])"""
-    return rcd # out, r_pl 
+    return rcd_out # out, r_pl 
 
 def u_solution(t1,t2,l):
     from gen_var import rc,rp, eps

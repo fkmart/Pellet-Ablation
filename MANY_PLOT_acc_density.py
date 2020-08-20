@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import os 
 from gen_var import many_start
 
-types = ['neutral','poisson', 'sheath']
+types = ['neutral','poisson', 'sheath', 'ion']
 
 k = 4
 

@@ -1,5 +1,7 @@
 import numpy as np
+from numba import njit
 
+@njit
 def discret(r):
     l = len(r)
     A = np.zeros((l,l))

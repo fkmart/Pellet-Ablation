@@ -17,12 +17,12 @@ def u_sol(r,t1):
         pass
     rho = eps*(1.0 + rp[t1]**2)/(1.0 + r**2)
 
-    rhodot = 2.0*rp[t1]*rpd[t1]/(1.0 + r**2) 
+    #rhodot = 2.0*rp[t1]*rpd[t1]/(1.0 + r**2) 
 
     #rdots, useless = rcdot(time,rc,rp)
-    rcd = rdot(time,rc,rp)
+    rcd1 = rdot(t1,rc,rp)
     #rcd1 = rdots[t1,-1]
-    rcd1 = rcd[t1]
+    #rcd1 = rcd[t1]
     u = rho[-1]*rcd1/rho + 2.0*(eps*rpd[t1]*rp[t1]/rho)*(np.arctan(r) - np.arctan(rc[t1]))
     return u 
 """
@@ -35,6 +35,6 @@ for i in range(50,450,100):
     ax.plot(r, u, label = r'$\tilde{u}(\tilde{r},\tilde{t} = $'+'{:3.1f}'.format(i/lt) + ')')
 
 plt.legend()
-plt.savefig('u_sol.png', format = 'png', dpi = 1400)
+#plt.savefig('u_sol.png', format = 'png', dpi = 1400)
 
 plt.show()"""

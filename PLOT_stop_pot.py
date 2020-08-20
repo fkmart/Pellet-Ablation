@@ -15,6 +15,8 @@ mid = 301
 ind1 = 15
 ind = 150
 
+rp_stop = 9.110493553750296236e-01
+
 fig, ax  = plt.subplots(figsize = (10,8))
 
 c = ['forestgreen','midnightblue', 'saddlebrown', 'y', 'darkred', 'dodgerblue', 'peru', 'gold', 'limegreen', 'tomato', 'firebrick']
@@ -22,12 +24,18 @@ p = 5
 potent = str(pel_pot[p])
 plt.axvline(r_int[mid], color = 'black', linestyle = '--')
 file = np.loadtxt(sub_dir + 'stop_point_pot_test_t' + str(t_start) + 'pot' + str(-0.0) + 'sig1.0.txt')
+for w in range(0, len(file[:,1])):
+        if file[w,1] < 0.01:
+            file[w,1] = rp_stop
 ax.plot(file[:,1], file[:,0], color = 'black', label = 'Pure CSDA')
 u = 0
 for p in range(2, 12,2):
     pot = gtp.gauss_func(pel_pot[p], sig[5], r_int[mid], r_int)
     x = format(pel_pot[p], '.1f') 
     file = np.loadtxt(sub_dir + 'stop_point_pot_test_t' + str(t_start) + 'pot' + x + 'sig1.0.txt')
+    for w in range(0, len(file[:,1])):
+        if file[w,1] < 0.01:
+            file[w,1] = rp_stop
     ax.plot(file[:,1], file[:,0], color = c[u], label = r'$\tilde{\phi_t} = $' + str(int(pel_pot[p])) + 'V')
     u+=1
 plt.legend(ncol = 2, loc = 'lower left')
@@ -46,8 +54,8 @@ ax.set_yscale('log')
 #for p in range(0, lp):
     #pot = gtp.gauss_func(pel_pot[p],1.00, r_int[mid], r_int)
     #ax2.plot(r_int[-ind:], pot[-ind:], color = c[p], linestyle = '--')
-plt.text(0.15, 17500, r'$\leftarrow$' + 'to pellet')
-plt.text(5.5, 17500, r'$\rightarrow$' + 'To plasma')
+plt.text(1.15, 17500, r'$\leftarrow$' + 'to pellet')
+plt.text(5.5, 17500, r'$\rightarrow$' + 'to plasma')
 plt.savefig(savedir + 'stop_point_log_pot_sig.png', format = 'png', dpi = 1200)
 #plt.grid('on')
 plt.show()
