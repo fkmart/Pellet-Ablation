@@ -52,5 +52,5 @@ im = ax.pcolormesh(T, R, D, cmap=cmap, norm = colors.LogNorm(vmax = 0.01, vmin =
 plt.grid(axis = 'y', color = 'black')
 fig.colorbar(im, ax=ax)
 plt.text(45,40, r'$\rightarrow \mathrm{\mathbf{B}}$', fontsize = 14)
-plt.savefig('elliptical_cloud.png', format = 'png', dpi = 1200)
+#plt.savefig('elliptical_cloud.png', format = 'png', dpi = 1200)
 plt.show()

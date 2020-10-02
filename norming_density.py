@@ -5,7 +5,7 @@ Created on Wed Jun 24 09:15:11 2020
 @author: Kyle
 """
 
-def norm(i,faux_density, r):
+def norm(faux_density, r):
     #from gen_var import rp, rc
     import numpy as np 
     import scipy.interpolate as spint
@@ -23,3 +23,28 @@ def norm(i,faux_density, r):
     bins_final = np.append(pellet_bin,bins_interp)
     bins_final = np.flip(bins_final,axis = 0)
     return bins_final
+
+def norm_sort(faux_density, r):
+    import numpy as np
+    import scipy.interpolate as spint
+    import sorter
+    pos = faux_density[:-1,-1]
+    bins = faux_density[:-1,0]
+    pellet_bin = faux_density[-1,0]
+    total = np.sum(bins)
+    r_sort, dens_sort = sorter.sorter(pos,bins)
+    
+    #Remove any points that are co-spatial
+    
+    r_u = np.unique(r_sort) 
+    dens_u = np.zeros(len(r_u))
+    
+    for a in range(0, len(dens_u)):
+        for s in range(0, len(r_sort)):
+            if r_u[a] == r_sort[s]: 
+                dens_u[a] += dens_sort[s]
+    dens_interp = spint.pchip_interpolate(r_u,dens_u,r[1:])
+    dens_interp = dens_interp*(total/(np.sum(dens_interp)))
+    dens_interp = np.append(pellet_bin,dens_interp)
+    return dens_interp
+    

@@ -237,7 +237,7 @@ def stopblock_phi_mod_rkf(E,r_grid, i,phi, savedir):
         return dxde_gas
 
     for j in range(0, le_mid):
-        #print(j)
+        print(j)
         en = [E[j]/(RME*M_fac)] #non-dimensionalising energy for use in STOP function 
         k1,k2,k3,k4,k5,k6 = 0.0,0.0,0.0,0.0,0.0,0.0 #RKF4 algorithm terms
         #z = np.arange(0,lr-1,1) #helps to determine r index in while loop with y counter
@@ -309,6 +309,8 @@ def stopblock_phi_mod_rkf_jit(E,r_grid, i,phi):
 
     energy_outputs = []
     space_outputs = []
+    potential_outputs = []
+    dedx_out = []
     lengths = np.zeros(le_mid)
     for j in range(0, le_mid):
         #print(j)
@@ -318,7 +320,9 @@ def stopblock_phi_mod_rkf_jit(E,r_grid, i,phi):
         #y = 0 #reset y counter to 0 after every energy
         xr = rc[i]
         xl = rp[i]
+        dedx_losses = [0.0]
         dphi = 0.0
+        dp_out = [dphi]
         tot_pot = 0.0
         x = rc[i]
         x_tot = [x]
@@ -327,11 +331,16 @@ def stopblock_phi_mod_rkf_jit(E,r_grid, i,phi):
         dr = 1e-3
         c = 0
         while en[c] > trunc_fac*I_non and en[c] - y_steps[0] >trunc_fac*I_non and en[c] -y_steps[1] > trunc_fac*I_non and en[c] - y_steps[2] > trunc_fac*I_non and en[c] - y_steps[3] > trunc_fac*I_non and en[c] - y_steps[4] > trunc_fac*I_non and x > rp[i] and en[c] + dphi > trunc_fac*I_non:
-            x,energy,h,err, k = rkf.rkf_jit(x,en[-1],dr,BT,BTS,xr,xl,I_non)
+            x,energy,h,err, k = rkf.rkf_jit(x,en[-1],dr,BT,BTS,xr,xl,I_non)  
+            dedx_loss = energy - en[-1]
             #k1,k2,k3,k4,k5,k6 = new_k[0], new_k[1], new_k[2], new_k[3], new_k[4], new_k[5]
+            dphi = dphi_calc.dphi_calc_jit(x + np.abs(h),x,r_grid,phi)
+            energy += dphi
             en.append(energy)
+            dedx_losses.append(dedx_loss)
             c +=1
             x_tot.append(x)
+            dp_out.append(dphi)
             for p in range(0,5):
                 y_steps[p] = sc.ys_calc_jit(h,k,BT,p)
         else:
@@ -342,6 +351,8 @@ def stopblock_phi_mod_rkf_jit(E,r_grid, i,phi):
                 en[s] *= RME*M_fac
                 energy_outputs.append(en[s])
                 space_outputs.append(x_tot[s])
+                potential_outputs.append(dp_out[s]*RME*M_fac)
+                dedx_out.append(dedx_losses[s]*RME*M_fac)
             lengths[j] = len(en)
             #ener_prof = np.asarray(en)
             #ener_prof = en.append(x_tot) # add the spacial points to ener_prof as final output

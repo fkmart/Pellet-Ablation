@@ -4,7 +4,7 @@ import scipy.integrate as spit
 RME = 0.5110034 #in MeV
 M_fac = 10.0**6
 KE_bot = 100
-KE_top = 15000
+KE_top = 20000
 
 #Distributin functino calculation
 

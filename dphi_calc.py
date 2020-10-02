@@ -12,7 +12,9 @@ def dphi_calc(x1,x2,r, pot):
 
 @njit
 def dphi_calc_jit(x1,x2,r, pot):
-    pot1 = MI.makeshift(x1,r,pot)
-    pot2 = MI.makeshift(x2,r,pot)
+    #pot1 = MI.makeshift(x1,r,pot)
+    #pot2 = MI.makeshift(x2,r,pot)
+    pot1 = np.interp(x1,r,pot)
+    pot2 = np.interp(x2,r,pot)
     dphi = pot2 - pot1 
     return dphi

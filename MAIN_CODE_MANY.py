@@ -7,7 +7,7 @@ from gen_var import rp_hr, rc_hr, t_start, lr, dr, lp, pel_pot, cloud_pot, style
 from gen_var import many_start, t_end, inc, p_inc, rp_crit, delta_t, sig, rgl, r_grid, ratio
 from gen_var import N_0_sca, pel_dens_numb, phi_plas,dt_hr, t_low_hr,t_upper_hr,tf, phi_p, sheath_pot, sheath_x
 from gen_var import h2_ion_rate, diff_ion_sca,diff_term_sca, mfp_ener, eps, no_flux_sca, ion_flux_sca
-from gen_var import ion_dens_renorm
+from gen_var import ion_dens_renorm, cs_ion_neut, v_ion, delta_t_ion
 import os 
 import stopblock #function to bethe stop electrons
 import MB_calc # function to determine EEDF
@@ -31,9 +31,13 @@ import remove_jumps_func as rj
 import number_zero
 import write_outputs
 import shutil
-import diff_mod
+#import diff_mod
 import ion_ablation
-import diffusion_F1 as diffusion
+#import diffusion_F1 as diffusion
+import datetime as da
+import FD_Fick_final as fdff
+import D_mfp_calc as dmfp
+import crossing_time_calc as ctc
 
 particle = 'electron' # clarifying particle type
 life = 0.0
@@ -67,7 +71,7 @@ pot = np.zeros(rgl)
 
 
 #######################################################################
-TYPE = 'neutral'
+TYPE = 'poisson'
 redo = 'false'
 #######################################################################
 
@@ -89,7 +93,8 @@ ind_low_r = fn.find_nearest(r_grid,rp_hr[i])
 ind_up_r = fn.find_nearest(r_grid,rc_hr[i])
 dens_neut_n = np.zeros(rgl)
 diff_ion_n = np.zeros(rgl)
-mfp = np.zeros(rgl)
+D_real = np.zeros(rgl)
+mfp_real = np.zeros(rgl)
 mft = np.zeros(rgl)
 last_number = 0
 
@@ -129,7 +134,7 @@ if redo =='true':
     acc_elec_dens = np.asarray([float(w) for w in acc_elec_dens])
     phic = file[5:,3]
     phic = np.asarray([float(w) for w in phic])
-    phic /= (RME*M_fac)
+    #phic /= (RME*M_fac)
     ind_low_r = fn.find_nearest(r_grid,rp_hr[i])
     ind_up_r = fn.find_nearest(r_grid,rc_hr[i])
     
@@ -157,13 +162,13 @@ phi_elec = np.zeros(rgl)
 #r_grid = np.linspace(rp_hr[i], rc_hr[i],num = rgl, endpoint = 'true')
 
 
-N_prev = 0.0
+#N_prev = 0.0
 rp_rc_arr.append((rp_hr[i],rc_hr[i]))
 
 #######################################################
 #       WHILE LOOP STARTS 
 #######################################################
-while rp_hr[i] > rp_crit and count < 200:
+while rp_hr[i] > rp_crit and count < 2000:
     print('Iteration number is ' + str(count))
     print(i)    
     time_indices.append(i)
@@ -185,7 +190,10 @@ while rp_hr[i] > rp_crit and count < 200:
     #up = next(p[0] for p in enumerate(r) if p[1] > rc_hr[i])
     #r_internal = r[low:up]
     #stopblock.stopblock_phi_mod_rkf(e_mid,r_grid,i,phic,savedir_raw)
+    st = da.datetime.now()
     energy_profiles, space_profiles, lengths = stopblock.stopblock_phi_mod_rkf_jit(e_mid,r_grid,i,phic)
+    et = da.datetime.now()
+    print('First time stretch is ' + str(et- st))
     start_ind = 0
     for a in range(0, len(lengths)):    
         inter1 = np.asarray(energy_profiles[start_ind: start_ind + int(lengths[a])])
@@ -198,33 +206,42 @@ while rp_hr[i] > rp_crit and count < 200:
     term_en, ind = baf.stop_analysis_term_ener.term_energy(particle, i, le, savedir_raw)
     stop_point = baf.stop_analysis_stop_point.stop_point(term_en,ind, particle,i,len(e_mid), savedir_raw)
     faux_density = baf.stop_analysis_particle_density.particle_density(stop_point,i,len(e_mid),e_bins,particle,savedir_an)
-    norm_density[ind_low_r:ind_up_r] = norm.norm(i,faux_density, r_grid[ind_low_r:ind_up_r])
-    norm_density[ind_low_r:ind_up_r] = np.flip(norm_density[ind_low_r:ind_up_r],axis = 0)
+    norm_density[ind_low_r:ind_up_r] = norm.norm_sort(faux_density, r_grid[ind_low_r:ind_up_r])
+    #norm_density[ind_low_r:ind_up_r] = np.flip(norm_density[ind_low_r:ind_up_r],axis = 0)
     #ret_flux_frac, ener_flux, lifetime = baf.stop_analysis_retarded_flux.retarded_flux(i, term_en)
     N_loss_n, ener_flux, lifetime, fraction = ablation.fluxes(i,faux_density, term_en)
-    N_loss_n += N_prev
-    
+    #N_loss_n += N_prev
+
     if TYPE == 'ion':
         N_total_ion = 0.0
+        ion_imp_frac = 0.0
         n_ion = norm_density*h2_ion_rate
+        n_ion[ind_low_r] = 0.0 #forcing boundary conditions, ions recombine here
         norm_density += n_ion # updates electron density with the released ionised electrons
-        dens_neut_n[ind_low_r:ind_up_r] = eps*(1.0 + rp_hr[i]**2)/(1.0 + r_grid[ind_low_r:ind_up_r]**2)
-        diff_ion_n[ind_low_r:ind_up_r] = dens_neut_n[ind_low_r:ind_up_r]**-1 
-        diff_ion_n[diff_ion_n == 0.0] = diff_ion_n[ind_low_r]
-        r_cent = 0.5*(r_grid[-1] + r_grid[0])
-
+        #dens_neut_real = pel_dens_numb*eps*(1.0 + rp_hr[i]**2)/(1.0 + r_grid[ind_low_r+1:ind_up_r]**2)
+        #mfp_real = (dens_neut_real*cs_ion_neut)**(-1)
+        mfp_real[ind_low_r+1: ind_up_r] = dmfp.mfp_calc(ind_low_r + 1, ind_up_r, i)
+        mfp_n = mfp_real/r0
+        #D_real = mfp_real * v_ion
+        D_real[ind_low_r+1:ind_up_r] = dmfp.diff_calc(mfp_real[ind_low_r+1:ind_up_r])
+        D_n = D_real*(tf/(r0*2))
+        ion_space_index = ctc.crossing(mfp_real, ind_low_r, ind_up_r, phic,delta_t_ion*tf)
         for ion_t in range(0,ratio):
-            B = np.sum(n_ion)
-            #n_ion_in = n_ion[ind_low_r:ind_up_r]
-            #r_grid_in = r_grid[ind_low_r:ind_up_r]
-            #diff_ion_in = diff_ion_n[ind_low_r:ind_up_r]
-            #n_ion = diff_mod.ion_diff(n_ion,r_grid,diff_ion_n,ratio)
-            n_ion = diffusion.diff_F2(n_ion,r_grid,delta_t/ratio,r_cent, ind_low_r,diff_ion_n)
-            n_ion *= B/np.sum(n_ion)
+            #B = np.sum(n_ion)
+            n_ion[ind_low_r:ind_up_r] = fdff.solver(n_ion[ind_low_r+1:ind_up_r-1],D_n[ind_low_r + 1:ind_up_r-1], dr, delta_t/ratio)
+            """co = int(mfp_n[ind_low_r+1]%(dr))
+            extra = (mfp_n[ind_low_r+1] - co*dr)/dr
+            if co > 0:
+                ion_imp_frac = n_ion[ind_low_r + 1 :ind_low_r + 1 + co]
+            ion_imp_frac += extra*n_ion[ind_low_r + 1 + co]
+            n_ion[ind_low_r + 1] *= (1.0 - extra)"""
+            ion_imp_frac = np.sum(n_ion[:ion_space_index])
+            n_ion[:ion_space_index] = 0.0
+            #n_ion *= B/np.sum(n_ion)
             "n_ion needs renormalised, and the outer points need summed/deleted"
-            ion_imp_frac = np.sum(n_ion[:ind_low_r])
-            n_ion[ind_up_r:] = 0.0
-            n_ion[:ind_low_r] = 0.0
+            #ion_imp_frac = np.sum(n_ion[:ind_low_r])
+            #n_ion[ind_up_r:] = 0.0
+            #n_ion[:ind_low_r] = 0.0
             #mfp[ind_low_r:ind_up_r] = dens_neut_n[ind_low_r:ind_up_r]**-1 
             #mft[ind_low_r:ind_up_r] = mfp[ind_low_r:ind_up_r]/v_ion
             """
@@ -234,21 +251,23 @@ while rp_hr[i] > rp_crit and count < 200:
             n_ion[:ind_low_r] = 0.0"""
             #flux_ion *= ion_flux_sca/no_flux_sca
             "Need to renormalise the ion flux to unattenuated electron flux"
+            
+            
             N_loss_ion_n = ion_ablation.ion_flux(ion_imp_frac,i,mfp_ener)
             N_total_ion += N_loss_ion_n
         N_loss_n += N_total_ion
     else:
         pass
-    rp_new = ablation.new_rp(N_loss_n, N_p_n,i)
-    N_p_n = rp_new**3
+    rp_new,N_p_n = ablation.new_rp(N_loss_n, N_p_n,i)
+    #N_p_n = rp_new**3
     life += delta_t
 
     #shift = j - i # difference between the two "index times" after calculation of new r
     shift = fn.find_nearest(rp_hr,rp_new) - i
-    if shift ==0:
+    """if shift ==0:
         N_prev = np.copy(N_loss_n)
     else:
-        N_prev = 0.0
+        N_prev = 0.0"""
 #    A = discret_mat.discret(r_grid[ind_low:ind_up])
     #np.append(flux_arr, (ret_flux_frac, i)) #Append potential dependant arrays with new quantities
     #flux_arr.append((ret_flux_frac, i))
@@ -303,8 +322,10 @@ while rp_hr[i] > rp_crit and count < 200:
     #else:
     #    pass
     non_dim = r0*r0*e*dens_plas/(epsilon0*phi_plas)
+    end = da.datetime.now()
     phi_elec[ind_low_r:ind_up_r] = SOR.SOR(A, phi_elec[ind_low_r:ind_up_r],non_dim*(acc_elec_dens[ind_low_r:ind_up_r]-n_ion[ind_low_r:ind_up_r]),r_grid[ind_low_r:ind_up_r])
-
+    end2 = da.datetime.now()
+    print('Second time stretch is ' + str(end2 - end))
     if TYPE =='sheath' or TYPE == 'ion':
         x_thing = sheath_x - rp_hr[i] + rp_hr[i + shift]
         phi_sheath = spint.pchip_interpolate(sheath_x - rp_hr[i] + rp_hr[i + shift],sheath_pot, r_grid)/phi_plas

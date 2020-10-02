@@ -65,8 +65,6 @@ def sheath():
         return diff
     count = 0
     while phi[-1] < phi_f:
-        if count ==137:
-            print( count)
         x_out, phi_out, h, err = rkf.rkf(x[-1], phi[-1], h, sheath, xr,xl)
         x = np.append(x,x_out)
         phi = np.append(phi,phi_out)

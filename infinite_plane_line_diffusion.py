@@ -4,13 +4,15 @@ import scipy.signal as scisig
 import romberg as ro
 from gen_var import m_h, m_h2, A_con, omega, s 
 
-l = 257
-x = np.linspace(-3.0, 3.0, num = l, endpoint = 'true')
-y = np.linspace(-1.0, 1.0, num = l, endpoint = 'true')
+l = 513
+x = np.linspace(-3.0, 8.0, num = l, endpoint = 'true')
+
 n = np.zeros(l)
 
-l1 = 40
-n[110:110 + l1] = np.linspace(0.5,2.5, num = l1)
+l1 = 60
+il = 270
+iu = il+l1
+n[il:iu] = np.linspace(0.5,2.5, num = l1)
 #n_new = np.linspace(0.5,1.2, num = l1)
 
 #y = np.copy(x[110:110 + l1])
@@ -33,16 +35,19 @@ B = ro.romberg_samp(n,x) # mass in system
 n_diff = np.zeros(l)
 print('Constant is ' + str(B))
 c = 1
+r_cent = (x[iu] + x[il])*0.5
+r_cent = x[0]+ 0.5*(-x[0] + x[-1])
 while t < 5*10**(-3):
     
-    Z = (x)/(np.sqrt(t*D*4.0))
-    f = (np.exp(-Z**2))/(np.sqrt(np.pi*D*t))
+    Z = (x-r_cent)/(np.sqrt(t*D*4.0))
+    f = (np.exp(-Z**2))/(np.sqrt(4.0*np.pi*D*t))
     n_diff = scisig.convolve(n, f, mode = 'same')
+    n_diff *= (x[1] - x[0])
     j = ro.romberg_samp(n_diff,x)
     print('Mass after diffusion = ' + str(j))
-    ax.plot(x,B*n_diff/j, label = 't = ' + str(c))
+    ax.plot(x,n_diff, label = 't = ' + str(c))
     t += 10**(-3)
-    check = ro.romberg_samp(B*n_diff/j,x)
+    check = ro.romberg_samp(n_diff,x)
     print('Check is ' + str(check) + ' at time ' + str(t -5*10**(-5)))
     c +=1
 plt.legend()

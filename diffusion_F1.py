@@ -62,9 +62,11 @@ def diff_flux(n,r,D,il,ir,dt):
 def diff_F2(r,n,t, r_cent,ind_low,D):
     
     #get diffusion properties    
+    dr = r[1] - r[0]
     Z = (r - r_cent)/(np.sqrt(t*D*4.0))
-    f = (np.exp(-Z**2))/(np.sqrt(np.pi*D*t))
+    f = (np.exp(-Z**2))/(np.sqrt(4.0*np.pi*D*t))
     n_diff = scisig.convolve(n, f, mode = 'same')
+    n_diff*= dr
     #j = ro.romberg_samp(n_diff,r)
     #print('Mass after diffusion = ' + str(j))
     #ax.plot(x,B*n_diff/j, label = 't = ' + str(c))

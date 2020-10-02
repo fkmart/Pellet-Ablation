@@ -11,21 +11,21 @@ from gen_var import rp_hr as rp
 def rkf(x,y,h,func,BT,BTS,xr,xl,I_non):
        
     # min and max time step
-    hmin = 1e-5
-    hmax = 5e-2
+    hmin = 5e-5
+    hmax = 1e-2
     h_arr = []
     br_no = 20
     # min and max errors
     if y > 10000.0/(RME*M_fac): #1e-8 and 1e-4 works
-        err_min = 1e-10
-        err_max = 1e-5
+        err_min = 1e-9
+        err_max = 1e-4
 
     elif y > 1000.0/(RME*M_fac): # 1e-10 and 1e-6 works - not normalised
-        err_min = 1e-11
-        err_max = 1e-7
+        err_min = 1e-10
+        err_max = 1e-6
 
     else: # 1e-13 and 1e-8 works - not normalised
-        err_min = 1e-13
+        err_min = 1e-12
         err_max = 1e-8
 
     #err_min = 1e-11
@@ -117,7 +117,7 @@ def rkf(x,y,h,func,BT,BTS,xr,xl,I_non):
         #y_norm = np.max(np.asarray(y4,y5))
         #err = np.abs(y4/y_norm-y5/y_norm) # need to remove y norms if this doesn't work
         err = np.abs(y4 - y5)
-        print('Had to use minimum value for h')
+        #print('Had to use minimum value for h')
         #sys.exit()
     #k = [k1,k2,k3,k4,k5,k6]
     err = np.abs(y4 - y5)
@@ -139,17 +139,17 @@ def rkf_jit(x,y,h,BT,BTS,xr,xl,I_non):
     k = np.ones(6)
     
     # min and max time step
-    hmin = 1e-5
-    hmax = 5e-2
+    hmin = 1e-4
+    hmax = 2e-2
     h_arr = np.zeros(1)
     br_no = 20
     # min and max errors
     if y > 10000.0/(RME*M_fac): #1e-8 and 1e-4 works
-        err_min = 1e-10
+        err_min = 1e-9
         err_max = 1e-4
 
     elif y > 1000.0/(RME*M_fac): # 1e-10 and 1e-6 works - not normalised
-        err_min = 1e-11
+        err_min = 1e-10
         err_max = 1e-6
 
     else: # 1e-13 and 1e-8 works - not normalised
@@ -159,7 +159,7 @@ def rkf_jit(x,y,h,BT,BTS,xr,xl,I_non):
     #err_min = 1e-11
     #err_max = 1e-4
     # max number of iterations
-    N = 100
+    N = 10
     
     if x - np.abs(h) < xl:
         h = x - xl 

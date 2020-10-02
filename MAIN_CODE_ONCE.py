@@ -76,7 +76,7 @@ acc_elec_dens = np.zeros(rgl) # initial electron density - zero everywhere
 pot /= RME*M_fac # normalise electric potential for stopblock calc
 
 p = 0
-for i in range(150, 200, 100):
+for i in range(50, 100, 100):
     print (i)
     save_raw_t = os.path.join(savedir_raw, 't_' + str(i)) + os.sep
     save_an_t = os.path.join(savedir_an, 't_' + str(i)) + os.sep
@@ -103,7 +103,7 @@ for i in range(150, 200, 100):
     ind = np.where(stop_point[:,1] < rp[i])
     ind = ind[0]
     faux_density = baf.stop_analysis_particle_density.particle_density(stop_point,i, len(e_mid), e_bins, particle,p)
-    norm_density = nd.norm(i,faux_density, r_grid)
+    norm_density = nd.norm(faux_density, r_grid)
     #norm_density = np.flip(norm_density, axis = 0)
     push_e_dens = gp.pusher(faux_density, r_grid)
     #ret_flux_frac, ener_flux, lifetime = baf.stop_analysis_retarded_flux.retarded_flux(i,save_an_t, term_en)
